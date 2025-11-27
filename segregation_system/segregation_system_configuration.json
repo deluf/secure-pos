@@ -1,0 +1,17 @@
+{
+  "minimumNumberOfSessions": 10,
+  "port": 3000,
+  "messagingSystemAddress": {
+    "ip": "10.0.0.1",
+    "port": 1000
+  },
+  "developmentSystemAddress": {
+    "ip": "10.0.0.2",
+    "port": 2000
+  },
+  "trainSplitPercentage": 0.7,
+  "validationSplitPercentage": 0.2,
+  "testSplitPercentage": 0.1,
+  "targetSessionsPerClass": 33,
+  "balancingTolerance": 0.2
+}
