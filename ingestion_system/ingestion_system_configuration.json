@@ -1,0 +1,15 @@
+{
+  "port": 5002,
+  "minimumRecords": 5,
+  "missingSamplesThreshold": 0.1,
+  "evaluationSystemAddress": {
+    "ip": "127.0.0.1",
+    "port": 6000
+  },
+  "preparationSystemAddress": {
+    "ip": "127.0.0.1",
+    "port": 5003
+  },
+  "evaluationPhaseWindow": 10,
+  "productionPhaseWindow": 100
+}
