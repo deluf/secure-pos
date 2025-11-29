@@ -7,32 +7,33 @@ from ingestion_system.flow_analysis import FlowAnalysis
 
 
 class IngestionSystemController:
+    LISTENING_PORT = 6969
+
     def __init__(self):
         self.config = IngestionSystemConfiguration()
         self.db = RawSessionDB()
-        self.io = JsonIO()
+        self.io = JsonIO(listening_port=self.LISTENING_PORT)
         self.analysis = FlowAnalysis()
         self.is_evaluation = True
         self.phase_counter = 0
 
-    def run(self, record: dict) -> Dict[str, Any]:
-        uuid = record.get('uuid')
-        if not uuid: return {"error": "Missing UUID"}
+    def run(self):
+        raw_session = None
+        while raw_session is None:
+            record = self.io.receive(RawSession)
 
-        # 1. Store the partial record (Horizontal Aggregation)
-        self.db.store(record)
+            uuid = record.get('uuid')
+            if not uuid:
+                continue
 
-        # 2. Check if we have all 3 parts (Transaction + Network + Location)
-        # We do NOT check for 10 samples here, just the presence of the 3 system parts.
-        raw_session = self.db.get_complete_session(uuid)
+            self.db.store(record)
 
-        if not raw_session:
-            return {"status": "Accumulating", "uuid": uuid}
+            raw_session = self.db.get_complete_session(uuid)
 
-        print(f"[Controller] Session {uuid} has all 3 parts. Processing...")
+        print(f"[Controller] Session {raw_session.uuid} has all 3 parts. Processing...")
 
         # 4. Remove from Buffer (Ref: "empty the buffer once the raw session is created" )
-        self.db.remove(uuid)
+        self.db.remove(raw_session.uuid)
 
         # 5. Validate (Mark Missing Samples)
         # This is where we check if we actually have 10 samples or if the data is too sparse.
@@ -61,3 +62,7 @@ class IngestionSystemController:
             self.is_evaluation = not self.is_evaluation
             self.phase_counter = 0
             print(f">>> SWITCH PHASE TO {'EVAL' if self.is_evaluation else 'PROD'} <<<")
+
+if __name__ == "__main__":
+    controller = IngestionSystemController()
+    controller.run()
