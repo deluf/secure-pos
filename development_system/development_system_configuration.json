@@ -1,0 +1,15 @@
+{
+  "port": 5002,
+  "overfittingTolerance": 0.05,
+  "generalizationTolerance": 0.25,
+  "messagingSystemAddress": {
+    "ip": "127.0.0.1",
+    "port": 6000
+  },
+  "classificationSystemAddress": {
+    "ip": "127.0.0.1",
+    "port": 5003
+  },
+  "hiddenLayerSizeRange": [1, 10, 2],
+  "hiddenNeuronPerLayerRange": [1, 200, 20]
+}
