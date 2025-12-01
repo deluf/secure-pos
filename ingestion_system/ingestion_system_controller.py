@@ -4,6 +4,7 @@ from ingestion_system.raw_session import RawSession
 from ingestion_system.raw_session_db import RawSessionDB
 from ingestion_system.flow_analysis import FlowAnalysis
 from dataclasses import asdict
+from shared.address import Address
 
 
 class IngestionSystemController:
@@ -11,6 +12,7 @@ class IngestionSystemController:
     RECORD_SCHEMA = {
         "type": "object",
         "properties": {
+            # 'type' remains a single scalar string to identify the batch/record category
             "type": {
                 "type": "string",
                 "enum": [
@@ -21,35 +23,54 @@ class IngestionSystemController:
                 ]
             },
 
+            # ARRAYS start here
             "timestamp": {
-                "type": ["number", "string"]
+                "type": "array",
+                "items": {
+                    "type": ["number", "string"]
+                }
             },
             "amount": {
-                "type": "number"
+                "type": "array",
+                "items": {
+                    "type": "number"
+                }
             },
             "source_ip": {
-                "type": "string",
-                "format": "ipv4"
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "format": "ipv4"
+                }
             },
             "dest_ip": {
-                "type": "string",
-                "format": "ipv4"
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "format": "ipv4"
+                }
             },
             "latitude": {
-                "type": "number",
-                "minimum": -90,
-                "maximum": 90
+                "type": "array",
+                "items": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                }
             },
             "longitude": {
-                "type": "number",
-                "minimum": -180,
-                "maximum": 180
+                "type": "array",
+                "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                }
             },
+
             "label": {
                 "type": "string",
             }
         },
-        # Only 'type' is mandatory
         "required": ["type"],
     }
     CONFIG_SCHEMA = {
@@ -138,7 +159,7 @@ class IngestionSystemController:
 
             self.db.store(json_record)
 
-            raw_session = self.db.get_complete_session(uuid)
+            raw_session = self.db.get_complete_session(uuid, self.config)
 
         print(f"[Controller] Session {raw_session.uuid} has all 3 parts. Processing...")
 
@@ -155,7 +176,7 @@ class IngestionSystemController:
         self._handle_phase_logic(raw_session)
 
         # 7. Send
-        self.io.send(asdict(raw_session), self.config['preparationSystemAddress'], "process")
+        self.io.send(asdict(raw_session), Address(**self.config['preparationSystemAddress']), "process")
 
     def _handle_phase_logic(self, session: RawSession):
         limit = self.config['evaluationPhaseWindow'] if self.is_evaluation else self.config['productionPhaseWindow']
@@ -163,7 +184,7 @@ class IngestionSystemController:
 
         if self.is_evaluation and session.label is not None:
             self.io.send({"uuid": session.uuid, "label": session.label},
-                         self.config['evaluationSystemAddress'], "evaluate")
+                         Address(**self.config['evaluationSystemAddress']), "evaluate")
 
         self.phase_counter += 1
         if self.phase_counter >= limit:
