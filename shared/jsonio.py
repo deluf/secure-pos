@@ -4,19 +4,7 @@ import queue
 from flask import Flask, request, jsonify
 from typing import Dict, Any, Optional, List
 from jsonschema import validate, ValidationError
-
-
-# UPDATE THIS IMPORT based on your project structure
-# from shared.address import Address
-# Mocking Address for this example so it runs standalone:
-class Address:
-    def __init__(self, ip, port):
-        self.ip = ip
-        self.port = port
-
-    def get_url(self):
-        return f"http://{self.ip}:{self.port}"
-
+from shared.address import Address
 
 class JsonIO:
     """

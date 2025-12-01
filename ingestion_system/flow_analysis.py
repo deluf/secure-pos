@@ -7,14 +7,14 @@ class FlowAnalysis:
 
     def mark_missing_samples(self, session: RawSession, config: IngestionSystemConfiguration) -> bool:
         """
-        Pads columns to the target length (10) using None for missing samples
-        and checks if the original missing sample count exceeded the allowed threshold.
-        Returns True if the original session was valid, False otherwise.
+        Calculates the TOTAL missing samples across all columns.
+        If the total is within the threshold, pads columns to the target length (10).
+        Returns True if the session was valid and padded, False otherwise.
         """
 
         target_length = FlowAnalysis.TARGET_SEQUENCE_LENGTH
 
-        # Group all session lists together. The padding value is uniformly None.
+        # Group all session lists together by reference
         columns_data = [
             session.timestamp,
             session.amount,
@@ -24,20 +24,24 @@ class FlowAnalysis:
             session.latitude
         ]
 
+        # 1. Calculate Total Missing Count (Accumulation Phase)
+        total_missing_count = 0
         for col_list in columns_data:
-            actual_length = len(col_list)
-            missing_count = target_length - actual_length
+            total_missing_count += max(0, target_length - len(col_list))
 
-            # 1. Validation Check
-            if missing_count > config.missing_samples_threshold:
-                # We don't need the field name for the printout here, but we set the flag.
-                print(
-                    f"[FlowAnalysis] INVALID: Found {missing_count} missing samples (Threshold: {config.missing_samples_threshold})")
-                return False
+        # 2. Validation Check (Aggregate Phase)
+        if total_missing_count > config.missing_samples_threshold*target_length*len(columns_data):
+            print(
+                f"[FlowAnalysis] INVALID: Found {total_missing_count} total missing samples across all columns "
+                f"(Threshold: {config.missing_samples_threshold})"
+            )
+            return False
 
-            # 2. Marking/Padding
-            if actual_length < target_length:
-                padding = [None] * missing_count
+        for col_list in columns_data:
+            missing_in_col = max(0, target_length - len(col_list))
+
+            if missing_in_col > 0:
+                padding = [None] * missing_in_col
                 col_list.extend(padding)
 
         return True
