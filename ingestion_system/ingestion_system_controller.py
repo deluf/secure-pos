@@ -161,21 +161,16 @@ class IngestionSystemController:
 
             raw_session = self.db.get_complete_session(uuid, self.config)
 
-        print(f"[Controller] Session {raw_session.uuid} has all 3 parts. Processing...")
+        print(f"[Controller] Session {raw_session.uuid} has all {self.config['minimumRecords']} parts. Processing...")
 
-        # 4. Remove from Buffer (Ref: "empty the buffer once the raw session is created" )
         self.db.remove(raw_session.uuid)
 
-        # 5. Validate (Mark Missing Samples)
-        # This is where we check if we actually have 10 samples or if the data is too sparse.
         if not self.analysis.mark_missing_samples(raw_session, self.config):
             print("[Controller] Session Discarded (Too many missing samples)")
             return
 
-        # 6. Phase Logic
         self._handle_phase_logic(raw_session)
 
-        # 7. Send
         self.io.send(asdict(raw_session), Address(**self.config['preparationSystemAddress']), "process")
 
     def _handle_phase_logic(self, session: RawSession):
