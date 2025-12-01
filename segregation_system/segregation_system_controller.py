@@ -3,14 +3,15 @@ import sys
 import time
 from random import randint
 
-import requests
 import json
 import jsonschema
 from jsonschema import validate
 from dataclasses import asdict
 from faker import Faker
 
+from shared.address import Address
 from shared.attack_risk_level import AttackRiskLevel
+from shared.jsonio import JsonIO
 
 fake = Faker()
 
@@ -21,13 +22,17 @@ from segregation_system.data_coverage_view import DataCoverageView
 from segregation_system.data_splitter import DataSplitter
 from shared.feature import Feature
 from segregation_system.prepared_sessions_db import PreparedSessionsDB, PreparedSession
-from segregation_system.segregation_system_io import SegregationSystemIO
 
 class SegregationSystemController:
 
     def __init__(self):
         self.configuration = self._json_load_and_validate("configuration")
-        self.io = SegregationSystemIO(self.configuration["port"])
+        with open("prepared_session.schema.json", encoding="utf-8") as schema_file:
+            schema = json.load(schema_file)
+        self.io = JsonIO(
+            {"/prepared-session": schema},
+            self.configuration["port"]
+        )
         self.db = PreparedSessionsDB()
         self.splitter = DataSplitter(
             self.configuration["trainSplitPercentage"],
@@ -53,10 +58,10 @@ class SegregationSystemController:
         sys.exit(-1)
 
     def run(self):
-
+        time.sleep(3)
         received_records = 0
-        while received_records < self.configuration["minimumNumberOfSessions"]:
-
+        minimum_number_of_records = int(self.configuration["minimumNumberOfSessions"])
+        while received_records < minimum_number_of_records:
             # Simulate the preparation system sending prepared sessions #
             dummy_session = PreparedSession(
                 f"{received_records}",
@@ -68,26 +73,25 @@ class SegregationSystemController:
                 randint(0, 2**32-1),
                 random.choice(list(AttackRiskLevel))
             )
-            requests.post(
-                'http://127.0.0.1:3000/api/prepared-session',
-                json=asdict(dummy_session)
+            self.io.send(
+                asdict(dummy_session),
+                Address("127.0.0.1", 3000),
+                "/prepared-session"
             )
             time.sleep(1)
             # End simulation #
 
-            received_record = self.io.receive_prepared_session()
-            if received_record is None:
+            received_prepared_session_json = self.io.receive("/prepared-session")
+            if received_prepared_session_json is None:
                 print("Queue is empty or timed-out...")
                 return
-            print(f"Received record: {received_record}")
+            print(f"Received prepared session: {received_prepared_session_json}")
 
             try:
-                self.db.store(received_record)
+                self.db.store(PreparedSession(**received_prepared_session_json))
                 received_records += 1
             except Exception as e:
                 print(f"Error storing record in database: {e}")
-
-        print(f"Enough records: expected at least {self.configuration['minimumNumberOfSessions']}, received {received_records}")
 
         sessions = self.db.getAll()
         print(f"Loaded {len(sessions)} sessions from database")
@@ -95,7 +99,6 @@ class SegregationSystemController:
         session_counts = {}
         for session in sessions:
             session_counts[session.label] = session_counts.get(session.label, 0) + 1
-        print(f"Session counts: {session_counts}")
 
         model = DataBalancingModel(
             balancing_tolerance=self.configuration["balancingTolerance"],
@@ -104,7 +107,7 @@ class SegregationSystemController:
         )
         DataBalancingView().build_chart(model)
 
-        print(" Data balancing report saved to 'data_balancing_report.png'")
+        print("\n Data balancing report saved to 'data_balancing_report.png'")
         print(" Write the decision to 'data_balancing_result.json', then press <ENTER>")
         input()
 
@@ -117,18 +120,18 @@ class SegregationSystemController:
             Feature.MEDIAN_DESTINATION_IP: [s.median_destination_ip for s in sessions],
         }
 
-        print(f"Feature samples: {features_samples}")
-
         model = DataCoverageModel(features_samples)
         DataCoverageView().build_chart(model)
 
-        print(" Data coverage report saved to 'data_coverage_report.png'")
+        print("\n Data coverage report saved to 'data_coverage_report.png'")
         print(" Write the decision to 'data_coverage_result.json', then press <ENTER>")
         input()
 
         self.splitter.split(sessions)
 
-        print("Data splitting complete.")
+        print(" Data splitting complete")
+
+        # FIXME: SEND
 
 if __name__ == "__main__":
     controller = SegregationSystemController()

@@ -18,7 +18,7 @@ class PreparedSession:
 
 class PreparedSessionsDB:
 
-    def __init__(self, db_path: str = "prepared-sessions.db"):
+    def __init__(self, db_path: str = "prepared_sessions.db"):
         self.db_path = db_path
         self.conn = sqlite3.connect(self.db_path)
         self._create_table()
@@ -63,8 +63,6 @@ class PreparedSessionsDB:
             prepared_session.median_destination_ip,
             prepared_session.label
         )
-
-        print(f"[PreparedSessionsDB] Stored prepared session: {values}")
 
         with self.conn:
             self.conn.execute(query, values)

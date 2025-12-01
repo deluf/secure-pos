@@ -17,7 +17,6 @@ class DataCoverageModel:
         for feature, values in feature_samples.items():
             arr = np.array(values)
             t_min, t_max = BOUNDS[feature]
-            # Clip values to ensure they don't exceed theoretical limits due to errors
-            arr = np.clip(arr, t_min, t_max)
+            arr = np.clip(arr, t_min, t_max) # Limit the samples to the theoretical range
             normalized_values = (arr - t_min) / (t_max - t_min)
             self.normalized_features_samples[feature] = normalized_values

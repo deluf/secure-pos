@@ -16,8 +16,6 @@ class DataSplitter:
         self.test_split_percentage = test_split_percentage
 
     def split(self, sessions: list[PreparedSession]):
-        print("Starting data split process using sklearn...")
-
         # First Split: Separate Train from the rest (Validation + Test)
         train_set, temp_set = train_test_split(
             sessions,
@@ -26,7 +24,7 @@ class DataSplitter:
         )
 
         # Second Split: Separate Validation and Test from the 'temp_set'
-        # We must recalculate the split ratio relative to the remaining data.
+        # We must recalculate the split ratio relative to the remaining data
         relative_test_size = self.test_split_percentage / (self.validation_split_percentage + self.test_split_percentage)
         val_set, test_set = train_test_split(
             temp_set,
@@ -38,13 +36,10 @@ class DataSplitter:
         self._save_to_csv("validation_set.csv", val_set)
         self._save_to_csv("test_set.csv", test_set)
 
-        print("Data splitting complete.")
-
     def _save_to_csv(self, filename, data):
         try:
             with open(filename, mode='w', newline='', encoding='utf-8') as f:
-                # Extract headers dynamically from the first item in the list
-                headers = asdict(data[0]).keys()
+                headers = asdict(data[0]).keys() # Extract headers dynamically
                 writer = csv.DictWriter(f, fieldnames=headers)
                 writer.writeheader()
                 for item in data:

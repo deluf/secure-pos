@@ -1,4 +1,3 @@
-
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -10,7 +9,6 @@ class DataCoverageView:
         pass
 
     def build_chart(self, model: DataCoverageModel):
-
         flat_features = []
         flat_samples = []
         flat_colors = []
@@ -35,7 +33,7 @@ class DataCoverageView:
         )
 
         fig.update_layout(
-            polar={'radialaxis': {'visible': True}}, # , 'range': [0, 1]
+            polar={'radialaxis': {'visible': True}},
             showlegend=False,
             title="Data coverage report"
         )
