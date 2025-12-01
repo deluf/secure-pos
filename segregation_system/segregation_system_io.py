@@ -1,5 +1,4 @@
 from segregation_system.prepared_sessions_db import PreparedSession
-from segregation_system_configuration import Address
 import requests
 import threading
 import queue
@@ -9,12 +8,8 @@ class SegregationSystemIO:
     def __init__(
         self,
         port: int,
-        messaging_system_address: Address,
-        development_system_address: Address
     ):
         self.port = port
-        self.messaging_system_address = messaging_system_address
-        self.development_system_address = development_system_address
 
         # Thread-safe queue to hold data received by Flask asynchronously
         self.received_sessions_queue = queue.Queue()
@@ -44,8 +39,6 @@ class SegregationSystemIO:
         # Put the data into the queue for the main thread to consume
         self.received_sessions_queue.put(prepared_session)
 
-        print("Received prepared session and added to queue")
-
         return "", 200
 
     def receive_prepared_session(self, block=True, timeout=None) -> PreparedSession | None:
@@ -55,35 +48,11 @@ class SegregationSystemIO:
         except queue.Empty:
             return None
 
-    def send_calibration_sets(self, data):
-        target_url = f"{self.development_system_address.ip}:{self.development_system_address.port}/api/..."
+    def send(self, data: dict, target_url: str, timeout: int = 5):
         try:
-            response = requests.post(target_url, json=data)
+            response = requests.post(target_url, json=data, timeout=timeout)
             response.raise_for_status()
-            print(f"Success sending calibration: {response.status_code}")
+            print(f"Success sending: {response.status_code}")
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error sending calibration sets: {e}")
-            return None
-
-    def send_data_balancing_results(self, data):
-        target_url = f"{self.messaging_system_address.ip}:{self.messaging_system_address.port}/api/..."
-        try:
-            response = requests.post(target_url, json=data)
-            response.raise_for_status()
-            print(f"Success sending balancing: {response.status_code}")
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending balancing results: {e}")
-            return None
-
-    def send_data_coverage_results(self, data):
-        target_url = f"{self.messaging_system_address.ip}:{self.messaging_system_address.port}/api/..."
-        try:
-            response = requests.post(target_url, json=data)
-            response.raise_for_status()
-            print(f"Success sending coverage: {response.status_code}")
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending coverage results: {e}")
-            return None
+            print(f"Error sending: {e}")

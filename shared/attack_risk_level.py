@@ -1,6 +1,6 @@
-import enum
+from enum import Enum
 
-class AttackRiskLevel(enum.Enum):
+class AttackRiskLevel(str, Enum):
     """
     Enum for different risk levels.
     """

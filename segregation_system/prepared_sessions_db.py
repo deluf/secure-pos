@@ -1,17 +1,20 @@
 
-import json
 from dataclasses import dataclass
 import sqlite3
+
+from shared.attack_risk_level import AttackRiskLevel
+
 
 @dataclass
 class PreparedSession:
     uuid: str
-    mean_absolute_differencing_transaction_timestamps: float
-    mean_absolute_differencing_transaction_amount: float
-    median_location: float
-    median_target_ip: str
-    median_dest_ip: str
-    label: str
+    mad_timestamps: float
+    mad_amounts: float
+    median_longitude: float
+    median_latitude: float
+    median_source_ip: int
+    median_destination_ip: int
+    label: AttackRiskLevel | None = None
 
 class PreparedSessionsDB:
 
@@ -25,10 +28,12 @@ class PreparedSessionsDB:
         CREATE TABLE IF NOT EXISTS prepared_sessions (
             uuid VARCHAR(32) PRIMARY KEY,
             mad_timestamps REAL,
-            mad_amount REAL,
-            median_location REAL,
-            median_target_ip VARCHAR(15),
-            median_dest_ip VARCHAR(15)
+            mad_amounts REAL,
+            median_longitude REAL,
+            median_latitude REAL,
+            median_source_ip INTEGER,
+            median_destination_ip INTEGER,
+            label VARCHAR(32)
         );
         """
         with self.conn:
@@ -39,34 +44,34 @@ class PreparedSessionsDB:
         INSERT INTO prepared_sessions (
             uuid,
             mad_timestamps, 
-            mad_amount, 
-            median_location, 
-            median_target_ip, 
-            median_dest_ip
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            mad_amounts, 
+            median_longitude, 
+            median_latitude,
+            median_source_ip, 
+            median_destination_ip,
+            label
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         values = (
             prepared_session.uuid,
-            prepared_session.mean_absolute_differencing_transaction_timestamps,
-            prepared_session.mean_absolute_differencing_transaction_amount,
-            prepared_session.median_location,
-            prepared_session.median_target_ip,
-            prepared_session.median_dest_ip
+            prepared_session.mad_amounts,
+            prepared_session.mad_timestamps,
+            prepared_session.median_longitude,
+            prepared_session.median_latitude,
+            prepared_session.median_source_ip,
+            prepared_session.median_destination_ip,
+            prepared_session.label
         )
+
+        print(f"[PreparedSessionsDB] Stored prepared session: {values}")
 
         with self.conn:
             self.conn.execute(query, values)
 
     def getAll(self) -> list[PreparedSession]:
         query = """
-        SELECT 
-            uuid,
-            mad_timestamps, 
-            mad_amount, 
-            median_location, 
-            median_target_ip, 
-            median_dest_ip
+        SELECT *
         FROM prepared_sessions
         """
 
@@ -78,11 +83,13 @@ class PreparedSessionsDB:
         for row in rows:
             session = PreparedSession(
                 uuid=row[0],
-                mean_absolute_differencing_transaction_timestamps=row[1],
-                mean_absolute_differencing_transaction_amount=row[2],
-                median_location=row[3],
-                median_target_ip=row[4],
-                median_dest_ip=row[5]
+                mad_amounts=row[1],
+                mad_timestamps=row[2],
+                median_longitude=row[3],
+                median_latitude=row[4],
+                median_source_ip=row[5],
+                median_destination_ip = row[6],
+                label = row[7]
             )
             results.append(session)
         return results

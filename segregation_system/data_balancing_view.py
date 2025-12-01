@@ -3,14 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from data_balancing_model import DataBalancingModel
+from shared.attack_risk_level import AttackRiskLevel
+
 
 class DataBalancingView:
     def build_chart(self, model: DataBalancingModel) -> None:
-        labels = ['Normal', 'Moderate', 'High']
+        labels = [AttackRiskLevel.NORMAL, AttackRiskLevel.MODERATE, AttackRiskLevel.HIGH]
         sessions = [
-            model.normal_risk_sessions,
-            model.moderate_risk_sessions,
-            model.high_risk_sessions
+            model.session_counts[AttackRiskLevel.NORMAL],
+            model.session_counts[AttackRiskLevel.MODERATE],
+            model.session_counts[AttackRiskLevel.HIGH]
         ]
         colors = ['green', 'orange', 'red']
 
@@ -33,4 +35,4 @@ class DataBalancingView:
         ax.set_title("Data balancing report")
         ax.legend()
 
-        plt.savefig('balancing_report.png')
+        plt.savefig('data_balancing_report.png')

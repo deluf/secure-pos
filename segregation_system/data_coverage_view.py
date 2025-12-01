@@ -2,8 +2,7 @@
 import plotly.graph_objects as go
 import plotly.express as px
 
-from data_coverage_model import DataCoverageModel, FeatureSamples
-from feature import Feature
+from segregation_system.data_coverage_model import DataCoverageModel
 
 class DataCoverageView:
 
@@ -17,11 +16,11 @@ class DataCoverageView:
         flat_colors = []
 
         colors = px.colors.qualitative.Plotly
-        for i, element in enumerate(model.coverage):
-            for sample in element.samples:
-                flat_features.append(element.feature.name)
+        for feature, samples in model.normalized_features_samples.items():
+            for sample in samples:
+                flat_features.append(feature.name)
                 flat_samples.append(sample)
-                flat_colors.append(colors[i % len(colors)])
+                flat_colors.append(colors[feature.value % len(colors)])
 
         fig = go.Figure()
 
@@ -36,9 +35,9 @@ class DataCoverageView:
         )
 
         fig.update_layout(
-            polar={'radialaxis': {'visible': True, 'range': [0, 1]}},
+            polar={'radialaxis': {'visible': True}}, # , 'range': [0, 1]
             showlegend=False,
             title="Data coverage report"
         )
 
-        fig.write_image("coverage_report.png")
+        fig.write_image("data_coverage_report.png")
