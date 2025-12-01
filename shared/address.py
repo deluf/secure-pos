@@ -3,9 +3,10 @@ class Address:
     Value Object representing a network address (IP and Port).
     """
 
-    def __init__(self, ip_addr: str, port: int):
-        self.ip_addr = ip_addr
+    def __init__(self, ip: str, port: int):
+        self.ip_addr = ip
         self.port = port
+        print(f"created {self.ip_addr}:{self.port}")
 
     def get_url(self, endpoint: str = "") -> str:
         """Helper to construct a full URL for Flask/Requests."""
