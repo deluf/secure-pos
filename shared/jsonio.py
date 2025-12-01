@@ -1,57 +1,73 @@
 import requests
 import threading
 import queue
-import logging
 from flask import Flask, request, jsonify
-from typing import Dict, Any, Optional, Type, TypeVar, Union
-from dataclasses import is_dataclass, asdict
+from typing import Dict, Any, Optional, List
+from jsonschema import validate, ValidationError
+
 
 # UPDATE THIS IMPORT based on your project structure
-# Example: from shared.address import Address
-from shared.address import Address
+# from shared.address import Address
+# Mocking Address for this example so it runs standalone:
+class Address:
+    def __init__(self, ip, port):
+        self.ip = ip
+        self.port = port
 
-# Generic Type Definition for the Receive method
-T = TypeVar('T')
+    def get_url(self):
+        return f"http://{self.ip}:{self.port}"
 
 
 class JsonIO:
     """
-    Handles JSON communication via HTTP/REST.
-
-    Features:
-    - Background Daemon Server: Listens for incoming JSON on a separate thread.
-    - Automatic Serialization: Converts @dataclass objects to JSON automatically on send.
-    - Automatic Deserialization: Converts JSON to @dataclass objects automatically on receive.
-    - Thread-safe: Uses a queue to transfer data from the background server to the main application.
+    Handles JSON communication via HTTP/REST with multiple endpoint support
+    and strict Schema Validation.
     """
 
-    def __init__(self, listening_port: int, host: str = "0.0.0.0"):
+    def __init__(self, endpoint_schemas: Dict[str, Optional[Dict]], listening_port: int, host: str = "0.0.0.0"):
         """
         Initializes the JsonIO system and starts the background Flask server.
 
         Args:
+            endpoint_schemas: A dictionary mapping URL paths to JSON Schemas.
+                              Format: { '/path': {schema_dict}, '/other': None }
+                              If value is None, no validation occurs for that endpoint.
             listening_port: The port this system should listen on.
-            host: The host to bind to (default 0.0.0.0 for all interfaces).
+            host: The host to bind to (default 0.0.0.0).
         """
         self.port = listening_port
         self.host = host
 
-        # Thread-safe queue to store incoming JSON payloads
-        self._rx_queue = queue.Queue()
+        # Dictionary to hold a queue for each specific endpoint
+        self._queues: Dict[str, queue.Queue] = {}
+
+        # Dictionary to hold the schema for each endpoint
+        self._schemas: Dict[str, Optional[Dict]] = {}
 
         # Configure Flask
         self.app = Flask(__name__)
 
-        # Define the route for receiving data
-        # Accepts generic JSON payloads
-        self.app.add_url_rule(
-            '/api/json',
-            view_func=self._handle_incoming_request,
-            methods=['POST']
-        )
+        # Register routes, queues, and schemas
+        for ep, schema in endpoint_schemas.items():
+            # Ensure endpoint starts with '/' for consistency
+            normalized_ep = ep if ep.startswith("/") else f"/{ep}"
+
+            # 1. Create a queue
+            self._queues[normalized_ep] = queue.Queue()
+
+            # 2. Store the schema
+            self._schemas[normalized_ep] = schema
+
+            # 3. Add the URL rule to Flask
+            self.app.add_url_rule(
+                normalized_ep,
+                endpoint=normalized_ep,
+                view_func=self._handle_incoming_request,
+                methods=['POST']
+            )
+            print(f"[JsonIO] Registered endpoint: {normalized_ep} (Schema: {'Yes' if schema else 'No'})")
 
         # Start Flask in a separate daemon thread
-        # daemon=True ensures this thread dies when the main program exits
         self.server_thread = threading.Thread(target=self._run_server, daemon=True)
         self.server_thread.start()
         print(f"[JsonIO] Background server started on {self.host}:{self.port}")
@@ -61,73 +77,62 @@ class JsonIO:
         self.app.run(host=self.host, port=self.port, debug=False, use_reloader=False)
 
     def _handle_incoming_request(self):
-        """Internal Flask route handler."""
+        """Internal Flask route handler for ALL registered endpoints."""
         if not request.is_json:
             return jsonify({"error": "Payload must be JSON"}), 400
 
+        # Identify which endpoint was called
+        path = request.path
+
+        if path not in self._queues:
+            return jsonify({"error": f"Endpoint {path} not configured"}), 404
+
         data = request.get_json()
 
-        # Put the data into the queue for the main thread to consume
-        self._rx_queue.put(data)
+        # --- SCHEMA VALIDATION ---
+        schema = self._schemas.get(path)
+        if schema:
+            try:
+                validate(instance=data, schema=schema)
+            except ValidationError as e:
+                # Validation failed: Do NOT enqueue
+                error_msg = f"Schema validation failed: {e.message}"
+                print(f"[JsonIO] Rejected request on {path}: {error_msg}")
+                return jsonify({"error": "Schema Validation Failed", "details": e.message}), 400
+        # -------------------------
 
-        # Acknowledge receipt immediately to the sender
-        return jsonify({"status": "queued"}), 200
+        # Route data to the specific queue for this path
+        self._queues[path].put(data)
 
-    def send(self, data: Any, target_address: Address, endpoint: str = "") -> bool:
+        return jsonify({"status": "queued", "endpoint": path}), 200
+
+    def send(self, data: Dict[str, Any], target_address: Address, endpoint: str = "") -> bool:
         """
-        Sends data to a target system.
-
-        Args:
-            data: The data to send. Can be a Dictionary or a @dataclass.
-            target_address: The Address object of the destination.
-            endpoint: The specific API endpoint (default is empty, usually goes to root or specified path).
-
-        Returns:
-            bool: True if successful, False otherwise.
+        Sends a dictionary as JSON to a target system.
         """
-        # AUTOMATIC CONVERSION: Dataclass -> Dict
-        if is_dataclass(data):
-            payload = asdict(data)
-        else:
-            payload = data
-
-        # Format URL
         if endpoint and not endpoint.startswith("/"):
             endpoint = f"/{endpoint}"
 
         url = f"{target_address.get_url()}{endpoint}"
 
         try:
-            # print(f"[JsonIO] Sending data to {url}...")
-            response = requests.post(url, json=payload)
+            response = requests.post(url, json=data)
             response.raise_for_status()
             return True
         except requests.RequestException as e:
             print(f"[JsonIO] Error sending to {url}: {e}")
             return False
 
-    def receive(self, structure: Type[T] = None, timeout: Optional[float] = None) -> Union[T, Dict, None]:
+    def receive(self, endpoint: str, timeout: Optional[float] = None) -> Optional[Dict[str, Any]]:
         """
-        Retrieves the next item from the queue. Blocks until data is available.
-
-        Args:
-            structure: (Optional) The class type (e.g., MyClass) to convert the JSON into.
-                       If None, returns a raw Dictionary.
-            timeout: (Optional) Seconds to wait before giving up. None waits indefinitely.
-
-        Returns:
-            An instance of 'structure', a Dictionary, or None if timed out.
+        Retrieves the next JSON object from the queue associated with the specific endpoint.
         """
+        normalized_ep = endpoint if endpoint.startswith("/") else f"/{endpoint}"
+
+        if normalized_ep not in self._queues:
+            raise ValueError(f"Endpoint '{normalized_ep}' is not registered. Available: {list(self._queues.keys())}")
+
         try:
-            # block=True makes this wait until data is available
-            data_dict = self._rx_queue.get(block=True, timeout=timeout)
-
-            # AUTOMATIC CONVERSION: Dict -> Dataclass
-            if structure and is_dataclass(structure):
-                # Unpacks dictionary into the class constructor
-                return structure(**data_dict)
-
-            return data_dict
-
+            return self._queues[normalized_ep].get(block=True, timeout=timeout)
         except queue.Empty:
             return None

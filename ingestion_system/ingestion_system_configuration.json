@@ -1,6 +1,6 @@
 {
   "port": 5002,
-  "minimumRecords": 5,
+  "minimumRecords": 3,
   "missingSamplesThreshold": 0.1,
   "evaluationSystemAddress": {
     "ip": "127.0.0.1",

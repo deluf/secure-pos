@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 @dataclass
@@ -7,10 +7,10 @@ class RawSession:
     DTO representing an aggregated session.
     """
     uuid: str
-    timestamp: List[Optional[float]] = field(default_factory=list)
-    amount: List[Optional[float]] = field(default_factory=list)
-    source_ip: List[Optional[str]] = field(default_factory=list)
-    dest_ip: List[Optional[str]] = field(default_factory=list)
-    longitude: List[Optional[float]] = field(default_factory=list)
-    latitude: List[Optional[float]] = field(default_factory=list)
+    timestamp: List[Optional[float]]
+    amount: List[Optional[float]]
+    source_ip: List[Optional[str]]
+    dest_ip: List[Optional[str]]
+    longitude: List[Optional[float]]
+    latitude: List[Optional[float]]
     label: Optional[int] = None

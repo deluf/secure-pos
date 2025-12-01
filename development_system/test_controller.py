@@ -24,16 +24,9 @@ class TestController(DevelopmentSystemController):
         if test_passed:
             # Create Classifier
             # Send Classifier
-            classifier = Classifier(self.parent.neural_network.models[self.parent.valid_classifier_id])
-            buffer = io.BytesIO()
-            joblib.dump(classifier, buffer)
-            buffer.seek(0)
-            send_file(
-                buffer,
-                mimetype='application/octet-stream',
-                as_attachment=True,
-                download_name='my_mlp_model.pkl'
-            )
+            model = self.parent.neural_network.models[self.parent.valid_classifier_id]
+            pickled = pickle.dumps(model, protocol=pickle.HIGHEST_PROTOCOL)
+            b64 = base64.b64encode(pickled).decode('ascii')
         else:
             # Send TestResults
             print(f"New range hidden layers size: {hidden_layer_size}")

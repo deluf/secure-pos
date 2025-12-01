@@ -1,18 +1,62 @@
-from typing import Dict, Any
 from shared.jsonio import JsonIO
 from ingestion_system.ingestion_system_configuration import IngestionSystemConfiguration
 from ingestion_system.raw_session import RawSession
 from ingestion_system.raw_session_db import RawSessionDB
 from ingestion_system.flow_analysis import FlowAnalysis
+from dataclasses import asdict
 
 
 class IngestionSystemController:
     LISTENING_PORT = 6969
+    RECORD_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "type": {
+                "type": "string",
+                "enum": [
+                    "transaction_data",
+                    "network_data",
+                    "location_data",
+                    "label"
+                ]
+            },
+
+            "timestamp": {
+                "type": ["number", "string"]
+            },
+            "amount": {
+                "type": "number"
+            },
+            "source_ip": {
+                "type": "string",
+                "format": "ipv4"
+            },
+            "dest_ip": {
+                "type": "string",
+                "format": "ipv4"
+            },
+            "latitude": {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90
+            },
+            "longitude": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+            },
+            "label": {
+                "type": "string",
+            }
+        },
+        # Only 'type' is mandatory
+        "required": ["type"],
+    }
 
     def __init__(self):
         self.config = IngestionSystemConfiguration()
         self.db = RawSessionDB()
-        self.io = JsonIO(listening_port=self.LISTENING_PORT)
+        self.io = JsonIO({"/api/record": self.RECORD_SCHEMA}, listening_port=self.LISTENING_PORT)
         self.analysis = FlowAnalysis()
         self.is_evaluation = True
         self.phase_counter = 0
@@ -20,13 +64,13 @@ class IngestionSystemController:
     def run(self):
         raw_session = None
         while raw_session is None:
-            record = self.io.receive(RawSession)
+            json_record = self.io.receive("api/record")
 
-            uuid = record.get('uuid')
+            uuid = json_record['uuid']
             if not uuid:
                 continue
 
-            self.db.store(record)
+            self.db.store(json_record)
 
             raw_session = self.db.get_complete_session(uuid)
 
@@ -39,15 +83,13 @@ class IngestionSystemController:
         # This is where we check if we actually have 10 samples or if the data is too sparse.
         if not self.analysis.mark_missing_samples(raw_session, self.config):
             print("[Controller] Session Discarded (Too many missing samples)")
-            return {"status": "Discarded", "reason": "Data Quality"}
+            return
 
         # 6. Phase Logic
         self._handle_phase_logic(raw_session)
 
         # 7. Send
-        self.io.send(vars(raw_session), self.config.preparation_system_address, "process")
-
-        return {"status": "Processed", "phase": "EVAL" if self.is_evaluation else "PROD"}
+        self.io.send(asdict(raw_session), self.config.preparation_system_address, "process")
 
     def _handle_phase_logic(self, session: RawSession):
         limit = self.config.evaluation_phase_limit if self.is_evaluation else self.config.production_phase_limit
@@ -62,6 +104,7 @@ class IngestionSystemController:
             self.is_evaluation = not self.is_evaluation
             self.phase_counter = 0
             print(f">>> SWITCH PHASE TO {'EVAL' if self.is_evaluation else 'PROD'} <<<")
+
 
 if __name__ == "__main__":
     controller = IngestionSystemController()
