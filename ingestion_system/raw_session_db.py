@@ -63,7 +63,7 @@ class RawSessionDB:
 
         print(f"[RawSessionDB] Stored {record_type} for UUID {uuid}")
 
-    def get_complete_session(self, uuid: str) -> Optional[RawSession]:
+    def get_complete_session(self, uuid: str, config: dict) -> Optional[RawSession]:
         """
         Returns the session ONLY if all 3 data parts are present.
         """
@@ -78,7 +78,7 @@ class RawSessionDB:
         trans_blob, net_blob, loc_blob, label_blob = row
 
         # Check required components
-        if not all([trans_blob, net_blob, loc_blob]):
+        if sum(x is not None for x in [trans_blob, net_blob, loc_blob, label_blob]) < config['minimumRecords']:
             return None
 
         # Deserialize Data blobs

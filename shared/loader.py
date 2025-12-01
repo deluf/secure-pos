@@ -2,6 +2,7 @@ import json
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
+
 def load_and_validate_json_file(path: str, schema: dict):
     """
     Load config JSON from disk, validate it against the provided schema,

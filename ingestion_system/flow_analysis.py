@@ -4,7 +4,8 @@ from ingestion_system.raw_session import RawSession
 class FlowAnalysis:
     TARGET_SEQUENCE_LENGTH = 10
 
-    def mark_missing_samples(self, session: RawSession, config: dict) -> bool:
+    @staticmethod
+    def mark_missing_samples(session: RawSession, config: dict) -> bool:
         """
         Calculates the TOTAL missing samples across all columns.
         If the total is within the threshold, pads columns to the target length (10).
@@ -31,7 +32,7 @@ class FlowAnalysis:
         missing_samples_threshold = config["missingSamplesThreshold"]
 
         # 2. Validation Check (Aggregate Phase)
-        if total_missing_count > missing_samples_threshold*target_length*len(columns_data):
+        if total_missing_count > missing_samples_threshold * target_length * len(columns_data):
             print(
                 f"[FlowAnalysis] INVALID: Found {total_missing_count} total missing samples across all columns "
                 f"(Threshold: {missing_samples_threshold})"

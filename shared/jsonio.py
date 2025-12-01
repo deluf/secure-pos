@@ -2,9 +2,10 @@ import requests
 import threading
 import queue
 from flask import Flask, request, jsonify
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from jsonschema import validate, ValidationError
 from shared.address import Address
+
 
 class JsonIO:
     """
