@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+
 @dataclass
 class RawSession:
     """
-    DTO representing an aggregated session.
+    raw session DTO.
     """
     uuid: str
     timestamp: List[Optional[float]]

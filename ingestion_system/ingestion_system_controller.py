@@ -30,24 +30,19 @@ class IngestionSystemController:
                 continue
 
             self.db.store(json_record)
-
-            raw_session = self.db.get_complete_session(uuid, self.config)
-
-        print(f"[Controller] Session {raw_session.uuid} has all {self.config['minimumRecords']} parts. Processing...")
+            raw_session = self.db.get_session(uuid, self.config)
 
         self.db.remove(raw_session.uuid)
 
         if not self.analysis.mark_missing_samples(raw_session, self.config):
-            print("[Controller] Session Discarded (Too many missing samples)")
             return
 
-        self._handle_phase_logic(raw_session)
+        self._handle_phase(raw_session)
 
         self.io.send_json(Address(**self.config['preparationSystemAddress']), "/process", asdict(raw_session))
 
-    def _handle_phase_logic(self, session: RawSession):
+    def _handle_phase(self, session: RawSession):
         limit = self.config['evaluationPhaseWindow'] if self.is_evaluation else self.config['productionPhaseWindow']
-        print(f"[Phase] {'EVAL' if self.is_evaluation else 'PROD'} ({self.phase_counter + 1}/{limit})")
 
         if self.is_evaluation and session.label is not None:
             self.io.send_json(Address(**self.config['evaluationSystemAddress']),
@@ -57,7 +52,6 @@ class IngestionSystemController:
         if self.phase_counter >= limit:
             self.is_evaluation = not self.is_evaluation
             self.phase_counter = 0
-            print(f">>> SWITCH PHASE TO {'EVAL' if self.is_evaluation else 'PROD'} <<<")
 
 
 if __name__ == "__main__":

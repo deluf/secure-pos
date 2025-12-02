@@ -48,7 +48,6 @@ class RawSessionDB:
             print(f"[RawSessionDB] Error: Invalid UUID or Type in record: {r}")
             return
 
-        # Simplified: No special case for label. Always dump the full dict.
         val_to_store = json.dumps(r)
 
         with self.conn:
@@ -57,15 +56,14 @@ class RawSessionDB:
                 (uuid,)
             )
 
-            # Update the target column
             query = f"UPDATE partial_sessions SET {target_col} = ? WHERE uuid = ?"
             self.conn.execute(query, (val_to_store, uuid))
 
         print(f"[RawSessionDB] Stored {record_type} for UUID {uuid}")
 
-    def get_complete_session(self, uuid: str, config: dict) -> Optional[RawSession]:
+    def get_session(self, uuid: str, config: dict) -> Optional[RawSession]:
         """
-        Returns the session ONLY if all 3 data parts are present.
+        Returns the session ONLY if all data parts are present.
         """
         query = "SELECT transaction_data, network_data, location_data, label FROM partial_sessions WHERE uuid = ?"
         cursor = self.conn.cursor()
@@ -77,11 +75,9 @@ class RawSessionDB:
 
         trans_blob, net_blob, loc_blob, label_blob = row
 
-        # Check required components
         if sum(x is not None for x in [trans_blob, net_blob, loc_blob, label_blob]) < config['minimumRecords']:
             return None
 
-        # Deserialize Data blobs
         t_data = json.loads(trans_blob)
         n_data = json.loads(net_blob)
         l_data = json.loads(loc_blob)
@@ -96,10 +92,9 @@ class RawSessionDB:
             dest_ip=n_data.get('dest_ip', []),
             longitude=l_data.get('longitude', []),
             latitude=l_data.get('latitude', []),
-            label=final_label_value  # Pass the string (e.g. "high")
+            label=final_label_value
         )
 
     def remove(self, uuid: str):
         with self.conn:
             self.conn.execute("DELETE FROM partial_sessions WHERE uuid = ?", (uuid,))
-        print(f"[RawSessionDB] Buffer cleared for {uuid}.")
