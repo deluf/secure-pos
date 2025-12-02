@@ -66,9 +66,9 @@ class DataSplitter:
             shuffle=True
         )
 
-        self._save_to_csv("train_set.csv", train_set)
-        self._save_to_csv("validation_set.csv", val_set)
-        self._save_to_csv("test_set.csv", test_set)
+        self._save_to_csv("output/train_set.csv", train_set)
+        self._save_to_csv("output/validation_set.csv", val_set)
+        self._save_to_csv("output/test_set.csv", test_set)
 
     @staticmethod
     def _save_to_csv(filename: str, data: list[PreparedSession]) -> None:
@@ -81,9 +81,9 @@ class DataSplitter:
         :type data: List[PreparedSession]
         :return: None
         """
-        with open(filename, mode='w', newline='', encoding='utf-8') as f:
+        with open(filename, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             # Write headers based on the Dataclass fields
             writer.writerow([field.name for field in fields(PreparedSession)])
             writer.writerows(astuple(item) for item in data)
-        print(f"[DataSplitter] Saved {len(data)} records to {filename}")
+        print(f"[DataSplitter] Saved {len(data)} records to '{filename}'")

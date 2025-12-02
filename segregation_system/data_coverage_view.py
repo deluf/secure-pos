@@ -37,16 +37,17 @@ class DataCoverageView:
             go.Scatterpolar(
                 r=flat_samples,
                 theta=flat_features,
-                mode='markers',
-                marker={'color': flat_colors},
+                mode="markers",
+                marker={"color": flat_colors},
                 fill=None,
             )
         )
 
         fig.update_layout(
-            polar={'radialaxis': {'visible': True}},
+            polar={"radialaxis": {"visible": True}},
             showlegend=False,
             title="Data coverage report"
         )
 
-        fig.write_image("data_coverage_report.png")
+        fig.write_image("output/data_coverage_report.png")
+        print("[DataCoverageView] Data coverage report saved to 'output/data_coverage_report.png'")

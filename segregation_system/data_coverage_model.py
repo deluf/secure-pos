@@ -32,7 +32,7 @@ class DataCoverageModel:
         self.normalized_features_samples = {}
         for feature, values in feature_samples.items():
             t_min, t_max = BOUNDS[feature]
-            arr = np.array(values, copy=False)
+            arr = np.array(values)
             np.clip(arr, t_min, t_max, out=arr) # Limit the samples to the theoretical range
             normalized_samples = (arr - t_min) / (t_max - t_min)
             self.normalized_features_samples[feature] = normalized_samples

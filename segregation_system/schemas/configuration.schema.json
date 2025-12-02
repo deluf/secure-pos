@@ -1,6 +1,7 @@
 {
     "type": "object",
     "properties": {
+        "serviceFlag": {"type": "boolean"},
         "port": {"type": "integer", "minimum": 1, "maximum": 65535},
         "messagingSystemAddress": {
             "type": "object",
@@ -8,7 +9,8 @@
                 "ip": {"type": "string", "format": "ipv4"},
                 "port": {"type": "integer", "minimum": 1, "maximum": 65535}
             },
-            "required": ["ip", "port"]
+            "required": ["ip", "port"],
+            "additionalProperties": false
         },
         "developmentSystemAddress": {
             "type": "object",
@@ -16,7 +18,8 @@
                 "ip": {"type": "string", "format": "ipv4"},
                 "port": {"type": "integer", "minimum": 1, "maximum": 65535}
             },
-            "required": ["ip", "port"]
+            "required": ["ip", "port"],
+            "additionalProperties": false
         },
         "minimumNumberOfSessions": {"type": "integer", "minimum": 1},
         "targetSessionsPerClass": {"type": "integer", "minimum": 1},
@@ -35,5 +38,6 @@
         "trainSplitPercentage",
         "validationSplitPercentage",
         "testSplitPercentage"
-    ]
+    ],
+    "additionalProperties": false
 }

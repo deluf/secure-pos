@@ -1,0 +1,8 @@
+{
+    "accept": true,
+    "requestedSessionsPerLabel": {
+        "normal": 0,
+        "moderate": 0,
+        "high": 0
+    }
+}

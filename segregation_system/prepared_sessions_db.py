@@ -135,8 +135,8 @@ class PreparedSessionsDB:
         for row in rows:
             session = PreparedSession(
                 uuid=row[0],
-                mad_amounts=row[1],
-                mad_timestamps=row[2],
+                mad_timestamps=row[1],
+                mad_amounts=row[2],
                 median_longitude=row[3],
                 median_latitude=row[4],
                 median_source_ip=row[5],
@@ -145,3 +145,14 @@ class PreparedSessionsDB:
             )
             results.append(session)
         return results
+
+    def delete_all(self) -> None:
+        """
+        Deletes all prepared sessions from the database
+
+        :return: None
+        """
+        query = "DELETE FROM prepared_sessions"
+
+        with self.conn:
+            self.conn.execute(query)

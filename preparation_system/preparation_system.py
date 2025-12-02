@@ -1,7 +1,7 @@
 import json
 
 from ingestion_system.raw_session import RawSession
-from shared.jsonio import JsonIO
+from shared.systemsio import SystemsIO
 from shared.address import Address
 from shared.loader import load_and_validate_json_file
 
@@ -82,7 +82,7 @@ class PreparationSystem:
 		# Deve corrispondere a ingestion_system_configuration.json -> preparationSystemAddress.port
 		self.port = 5003
 
-		self.io = JsonIO({"/process": self.RAW_SESSION_SCHEMA}, listening_port=self.port)
+		self.io = SystemsIO({"/process": self.RAW_SESSION_SCHEMA}, listening_port=self.port)
 		self.corrector = DataCorrector(float(self.config["maxTransactionsAmount"]))
 		self.extractor = FeatureExtractor(self.config["extractedFeatures"])
 

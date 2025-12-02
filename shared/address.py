@@ -1,19 +1,16 @@
+"""
+A module defining the Address class representing a network address (IP and Port)
+"""
+
 class Address:
     """
-    Value Object representing a network address (IP and Port).
+    Object representing a network address (IP and Port)
     """
 
     def __init__(self, ip: str, port: int):
-        self.ip_addr = ip
+        self.ip = ip
         self.port = port
-        print(f"created {self.ip_addr}:{self.port}")
-
-    def get_url(self, endpoint: str = "") -> str:
-        """Helper to construct a full URL for Flask/Requests."""
-        base = f"http://{self.ip_addr}:{self.port}"
-        if endpoint:
-            return f"{base}/{endpoint}"
-        return base
+        print(f"created {self.ip}:{self.port}")
 
     def __str__(self):
-        return f"{self.ip_addr}:{self.port}"
+        return f"{self.ip}:{self.port}"

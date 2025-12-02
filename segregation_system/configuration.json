@@ -1,4 +1,5 @@
 {
+    "serviceFlag": false,
     "port": 3000,
     "messagingSystemAddress": {
         "ip": "10.0.0.1",

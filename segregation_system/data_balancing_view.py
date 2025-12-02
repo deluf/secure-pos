@@ -28,7 +28,7 @@ class DataBalancingView:
             model.session_counts[AttackRiskLevel.MODERATE],
             model.session_counts[AttackRiskLevel.HIGH]
         ]
-        colors = ['green', 'orange', 'red']
+        colors = ["green", "orange", "red"]
 
         target = model.target_sessions_per_class
         tolerance = model.balancing_tolerance
@@ -38,15 +38,16 @@ class DataBalancingView:
 
         ax.bar(labels, sessions, color=colors)
 
-        ax.axhline(y=target, color='blue', linewidth=2, label='Target')
-        ax.axhline(y=mean, color='black', linewidth=2, label='Mean')
-        ax.axhline(y=mean + mean * tolerance, color='black', linestyle='--',
-            label=f'Mean +/- tolerance ({tolerance})')
-        ax.axhline(y=mean - mean * tolerance, color='black', linestyle='--')
+        ax.axhline(y=target, color="blue", linewidth=2, label="Target")
+        ax.axhline(y=mean, color="black", linewidth=2, label="Mean")
+        ax.axhline(y=mean + mean * tolerance, color="black", linestyle="--",
+            label=f"Mean +/- tolerance ({tolerance})")
+        ax.axhline(y=mean - mean * tolerance, color="black", linestyle="--")
 
         ax.set_ylabel("Number of sessions")
         ax.set_xlabel("Attack risk level")
         ax.set_title("Data balancing report")
         ax.legend()
 
-        plt.savefig('data_balancing_report.png')
+        plt.savefig("output/data_balancing_report.png")
+        print("[DataBalancingView] Data balancing report saved to 'output/data_balancing_report.png'")

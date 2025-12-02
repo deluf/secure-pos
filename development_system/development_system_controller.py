@@ -3,7 +3,7 @@ from development_system.test_controller import TestController
 from development_system.training_controller import TrainingController
 from development_system.validation_controller import ValidationController
 from development_system.development_system_configuration import DevelopmentSystemConfiguration
-from shared.jsonio import JsonIO
+from shared.systemsio import SystemsIO
 
 
 class DevelopmentSystemController:
@@ -13,7 +13,7 @@ class DevelopmentSystemController:
         self.config = DevelopmentSystemConfiguration()
         self.neural_network = NeuralNetwork(self.config.hidden_layer_size_range, self.config.hidden_neuron_per_layer_range)
         self.service_flag = True #?
-        self.io = JsonIO(listening_port=self.LISTENING_PORT)
+        self.io = SystemsIO(listening_port=self.LISTENING_PORT)
         self.ongoing_validation = False
         self.valid_classifier_exists = False
         self.number_iterations_fine = False

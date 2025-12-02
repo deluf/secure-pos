@@ -1,4 +1,4 @@
-from shared.jsonio import JsonIO
+from shared.systemsio import SystemsIO
 from shared.loader import load_and_validate_json_file
 from ingestion_system.raw_session import RawSession
 from ingestion_system.raw_session_db import RawSessionDB
@@ -143,7 +143,7 @@ class IngestionSystemController:
     def __init__(self):
         self.config = load_and_validate_json_file(self.CONFIG_PATH, self.CONFIG_SCHEMA)
         self.db = RawSessionDB()
-        self.io = JsonIO({"/api/record": self.RECORD_SCHEMA}, listening_port=self.config['port'])
+        self.io = SystemsIO({"/api/record": self.RECORD_SCHEMA}, listening_port=self.config['port'])
         self.analysis = FlowAnalysis()
         self.is_evaluation = True
         self.phase_counter = 0
