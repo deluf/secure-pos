@@ -1,14 +1,25 @@
+"""
+Provides functionalities for visualizing the data coverage report as a radar chart
+"""
+
 import plotly.graph_objects as go
 import plotly.express as px
 
 from segregation_system.data_coverage_model import DataCoverageModel
 
 class DataCoverageView:
+    """
+    Represents the view for the data coverage chart
+    """
+    @staticmethod
+    def build_chart(model: DataCoverageModel):
+        """
+        Builds a radar chart based on the provided data coverage model
 
-    def __init__(self):
-        pass
-
-    def build_chart(self, model: DataCoverageModel):
+        :param model: The normalized features and samples to be visualized
+        :type model: DataCoverageModel
+        :return: None
+        """
         flat_features = []
         flat_samples = []
         flat_colors = []

@@ -7,13 +7,10 @@ import json
 import jsonschema
 from jsonschema import validate
 from dataclasses import asdict
-from faker import Faker
 
+from shared.jsonio import JsonIO
 from shared.address import Address
 from shared.attack_risk_level import AttackRiskLevel
-from shared.jsonio import JsonIO
-
-fake = Faker()
 
 from segregation_system.data_balancing_model import DataBalancingModel
 from segregation_system.data_balancing_view import DataBalancingView
@@ -22,6 +19,28 @@ from segregation_system.data_coverage_view import DataCoverageView
 from segregation_system.data_splitter import DataSplitter
 from shared.feature import Feature
 from segregation_system.prepared_sessions_db import PreparedSessionsDB, PreparedSession
+
+# Simulate the preparation system sending prepared sessions #
+from faker import Faker
+fake = Faker()
+def SIMULATE_INCOMING_PREPARED_SESSIONS(self, received_sessions):
+    dummy_session = PreparedSession(
+        f"{received_sessions}",
+        round(random.uniform(1, 60), 2),
+        round(random.uniform(50, 500), 2),
+        float(fake.longitude()),
+        float(fake.latitude()),
+        randint(0, 2 ** 32 - 1),
+        randint(0, 2 ** 32 - 1),
+        random.choice(list(AttackRiskLevel))
+    )
+    self.io.send(
+        asdict(dummy_session),
+        Address("127.0.0.1", 3000),
+        "/prepared-session"
+    )
+    time.sleep(1)
+# End simulation #
 
 class SegregationSystemController:
 
@@ -58,43 +77,28 @@ class SegregationSystemController:
         sys.exit(-1)
 
     def run(self):
-        time.sleep(3)
-        received_records = 0
-        minimum_number_of_records = int(self.configuration["minimumNumberOfSessions"])
-        while received_records < minimum_number_of_records:
+        received_sessions = 0
+        minimum_number_of_sessions = int(self.configuration["minimumNumberOfSessions"])
+        while received_sessions < minimum_number_of_sessions:
             # Simulate the preparation system sending prepared sessions #
-            dummy_session = PreparedSession(
-                f"{received_records}",
-                round(random.uniform(1, 60), 2),
-                round(random.uniform(50, 500), 2),
-                float(fake.longitude()),
-                float(fake.latitude()),
-                randint(0, 2**32-1),
-                randint(0, 2**32-1),
-                random.choice(list(AttackRiskLevel))
-            )
-            self.io.send(
-                asdict(dummy_session),
-                Address("127.0.0.1", 3000),
-                "/prepared-session"
-            )
-            time.sleep(1)
+            SIMULATE_INCOMING_PREPARED_SESSIONS(self, received_sessions) # NO RECORDS
             # End simulation #
 
-            received_prepared_session_json = self.io.receive("/prepared-session")
-            if received_prepared_session_json is None:
-                print("Queue is empty or timed-out...")
-                return
-            print(f"Received prepared session: {received_prepared_session_json}")
+            prepared_session_data = self.io.receive("/prepared-session")
+            if prepared_session_data is None:
+                continue # Empty queue (or timed out)
+            print(f"[Controller] Received prepared session: {prepared_session_data}")
 
             try:
-                self.db.store(PreparedSession(**received_prepared_session_json))
-                received_records += 1
+                self.db.store(PreparedSession(**prepared_session_data))
+                received_sessions += 1
             except Exception as e:
-                print(f"Error storing record in database: {e}")
+                print(f"[Controller] Error storing session in database: {e}")
 
-        sessions = self.db.getAll()
-        print(f"Loaded {len(sessions)} sessions from database")
+        sessions = self.db.get_all()
+        print(f"[Controller] Loaded {len(sessions)} sessions from database")
+
+
 
         session_counts = {}
         for session in sessions:
@@ -106,6 +110,8 @@ class SegregationSystemController:
             session_counts=session_counts
         )
         DataBalancingView().build_chart(model)
+
+        # TODO: Service flag + read decision
 
         print("\n Data balancing report saved to 'data_balancing_report.png'")
         print(" Write the decision to 'data_balancing_result.json', then press <ENTER>")
@@ -122,6 +128,8 @@ class SegregationSystemController:
 
         model = DataCoverageModel(features_samples)
         DataCoverageView().build_chart(model)
+
+        # TODO: Service flag + read decision
 
         print("\n Data coverage report saved to 'data_coverage_report.png'")
         print(" Write the decision to 'data_coverage_result.json', then press <ENTER>")
