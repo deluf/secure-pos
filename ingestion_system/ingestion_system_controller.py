@@ -1,4 +1,4 @@
-from shared.systemsio import SystemsIO
+from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from ingestion_system.raw_session import RawSession
 from ingestion_system.raw_session_db import RawSessionDB
@@ -9,141 +9,13 @@ from shared.address import Address
 
 class IngestionSystemController:
     CONFIG_PATH = "ingestion_system/ingestion_system_configuration.json"
-    RECORD_SCHEMA = {
-        "type": "object",
-        "properties": {
-            # 'type' remains a single scalar string to identify the batch/record category
-            "type": {
-                "type": "string",
-                "enum": [
-                    "transaction_data",
-                    "network_data",
-                    "location_data",
-                    "label"
-                ]
-            },
-
-            # ARRAYS start here
-            "timestamp": {
-                "type": "array",
-                "items": {
-                    "type": ["number", "string"]
-                }
-            },
-            "amount": {
-                "type": "array",
-                "items": {
-                    "type": "number"
-                }
-            },
-            "source_ip": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "format": "ipv4"
-                }
-            },
-            "dest_ip": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "format": "ipv4"
-                }
-            },
-            "latitude": {
-                "type": "array",
-                "items": {
-                    "type": "number",
-                    "minimum": -90,
-                    "maximum": 90
-                }
-            },
-            "longitude": {
-                "type": "array",
-                "items": {
-                    "type": "number",
-                    "minimum": -180,
-                    "maximum": 180
-                }
-            },
-
-            "label": {
-                "type": "string",
-            }
-        },
-        "required": ["type"],
-    }
-    CONFIG_SCHEMA = {
-        "type": "object",
-        "properties": {
-            "port": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 65535
-            },
-            "minimumRecords": {
-                "type": "integer",
-                "minimum": 0
-            },
-            "missingSamplesThreshold": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1
-            },
-            "evaluationSystemAddress": {
-                "type": "object",
-                "properties": {
-                    "ip": {
-                        "type": "string",
-                        "format": "ipv4"
-                    },
-                    "port": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 65535
-                    }
-                },
-                "required": ["ip", "port"]
-            },
-            "preparationSystemAddress": {
-                "type": "object",
-                "properties": {
-                    "ip": {
-                        "type": "string",
-                        "format": "ipv4"
-                    },
-                    "port": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 65535
-                    }
-                },
-                "required": ["ip", "port"]
-            },
-            "evaluationPhaseWindow": {
-                "type": "integer",
-                "minimum": 1
-            },
-            "productionPhaseWindow": {
-                "type": "integer",
-                "minimum": 1
-            }
-        },
-        "required": [
-            "port",
-            "minimumRecords",
-            "missingSamplesThreshold",
-            "evaluationSystemAddress",
-            "preparationSystemAddress",
-            "evaluationPhaseWindow",
-            "productionPhaseWindow"
-        ]
-    }
+    RECORD_SCHEMA = "ingestion_system/record_schema.json"
+    CONFIG_SCHEMA = "ingestion_system/config_schema.json"
 
     def __init__(self):
         self.config = load_and_validate_json_file(self.CONFIG_PATH, self.CONFIG_SCHEMA)
         self.db = RawSessionDB()
-        self.io = SystemsIO({"/api/record": self.RECORD_SCHEMA}, listening_port=self.config['port'])
+        self.io = SystemsIO([Endpoint("/api/record", self.RECORD_SCHEMA)], port=self.config['port'])
         self.analysis = FlowAnalysis()
         self.is_evaluation = True
         self.phase_counter = 0
@@ -151,7 +23,7 @@ class IngestionSystemController:
     def run(self):
         raw_session = None
         while raw_session is None:
-            json_record = self.io.receive("api/record")
+            json_record = self.io.receive("/api/record")
 
             uuid = json_record.get('uuid')
             if not uuid:
@@ -171,15 +43,15 @@ class IngestionSystemController:
 
         self._handle_phase_logic(raw_session)
 
-        self.io.send(asdict(raw_session), Address(**self.config['preparationSystemAddress']), "process")
+        self.io.send_json(Address(**self.config['preparationSystemAddress']), "/process", asdict(raw_session))
 
     def _handle_phase_logic(self, session: RawSession):
         limit = self.config['evaluationPhaseWindow'] if self.is_evaluation else self.config['productionPhaseWindow']
         print(f"[Phase] {'EVAL' if self.is_evaluation else 'PROD'} ({self.phase_counter + 1}/{limit})")
 
         if self.is_evaluation and session.label is not None:
-            self.io.send({"uuid": session.uuid, "label": session.label},
-                         Address(**self.config['evaluationSystemAddress']), "evaluate")
+            self.io.send_json(Address(**self.config['evaluationSystemAddress']),
+                              "evaluate", {"uuid": session.uuid, "/label": session.label})
 
         self.phase_counter += 1
         if self.phase_counter >= limit:
