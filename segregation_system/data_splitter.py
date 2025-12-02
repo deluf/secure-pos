@@ -3,7 +3,10 @@ Module for splitting a dataset of prepared sessions into training, validation, a
 """
 
 import csv
+import uuid
 from dataclasses import fields, astuple
+from pathlib import Path
+
 from sklearn.model_selection import train_test_split
 
 from segregation_system.prepared_sessions_db import PreparedSession
@@ -40,14 +43,15 @@ class DataSplitter:
         self.validation_split_percentage = validation_split_percentage
         self.test_split_percentage = test_split_percentage
 
-    def split(self, sessions: list[PreparedSession]) -> None:
+    def split(self, sessions: list[PreparedSession]) -> list[str]:
         """
         Splits a list of prepared sessions into training, validation, and test sets.
         The splits are then saved to separate CSV files
 
         :param sessions: The list of prepared sessions that need to be split
         :type sessions: list[PreparedSession]
-        :return: None
+        :return: A list of file paths to the saved CSV files
+        :rtype: list[str]
         """
         # First Split: Separate Train from the rest (Validation + Test)
         train_set, temp_set = train_test_split(
@@ -66,9 +70,13 @@ class DataSplitter:
             shuffle=True
         )
 
-        self._save_to_csv("output/train_set.csv", train_set)
-        self._save_to_csv("output/validation_set.csv", val_set)
-        self._save_to_csv("output/test_set.csv", test_set)
+        outputs = []
+        splits_id = uuid.uuid4()
+        for split_name, split_data in zip(["train", "validation", "test"], [train_set, val_set, test_set]):
+            store_filename = f"output/{split_name}_set.{splits_id}.csv"
+            self._save_to_csv(store_filename, split_data)
+            outputs.append(store_filename)
+        return outputs
 
     @staticmethod
     def _save_to_csv(filename: str, data: list[PreparedSession]) -> None:

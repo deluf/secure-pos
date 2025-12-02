@@ -13,7 +13,6 @@ import requests
 
 from flask import Flask, request, jsonify, Response
 from jsonschema import validate, ValidationError
-from werkzeug.datastructures import FileStorage
 
 from shared.address import Address
 
@@ -120,18 +119,13 @@ class SystemsIO:
 
         if request.files:
             path = request.path
-            received_files = []
+            os.makedirs("files", exist_ok=True)
             for _, file_storage in request.files.items():
-                if file_storage.filename == '':
-                    continue  # Skip empty files
-                received_files.append(file_storage.filename)
-                os.makedirs("files", exist_ok=True)
-                file_storage.save(f"files/{file_storage.filename}")
-                self.queues[path].put(file_storage.filename)
-                print(f"[SystemsIO] Received FILE: {file_storage.filename}")
-            if not received_files:
-                return jsonify({"error": "No valid files found"}), 400
-            return jsonify({"status": f"Received: {received_files}"}), 200
+                filename = f"files/{file_storage.filename}"
+                file_storage.save(filename)
+                self.queues[path].put(filename)
+                print(f"[SystemsIO] Received FILE: {filename}")
+            return jsonify({"status": "Ok"}), 200
 
         return jsonify({"error": "Unsupported Media Type. Send 'application/json'"
             " or 'multipart/form-data' with files"}), 415
