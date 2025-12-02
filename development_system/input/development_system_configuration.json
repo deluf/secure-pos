@@ -1,5 +1,5 @@
 {
-  "port": 5002,
+  "port": 6969,
   "overfittingTolerance": 0.05,
   "generalizationTolerance": 0.25,
   "messagingSystemAddress": {
@@ -10,6 +10,14 @@
     "ip": "127.0.0.1",
     "port": 5003
   },
-  "hiddenLayerSizeRange": [1, 10, 2],
-  "hiddenNeuronPerLayerRange": [1, 200, 20]
+  "hiddenLayerSizeRange": {
+    "min": 1,
+    "max": 10,
+    "step": 2
+  },
+  "hiddenNeuronPerLayerRange": {
+    "min": 1,
+    "max": 200,
+    "step": 20
+  }
 }

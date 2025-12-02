@@ -7,17 +7,18 @@ class ValidationController(DevelopmentSystemController):
         super().__init__()
         self.parent = parent
         self.view = ValidationView()
+        self.ongoing_validation = False
 
     def run(self):
         # Set HyperParams
-        self.parent.ongoing_validation = self.parent.neural_network.set_hyper_params()
+        self.ongoing_validation = self.parent.neural_network.set_hyper_params()
         print("[Validation] Initial HyperParams set (Grid Search).")
 
-        while self.parent.ongoing_validation:
+        while self.ongoing_validation:
             # Calibrate
             self.parent.neural_network.calibrate()
             # Set HyperParams
-            self.parent.ongoing_validation = self.parent.neural_network.set_hyper_params()
+            self.ongoing_validation = self.parent.neural_network.set_hyper_params()
 
         # Validation score
         val_score = self.parent.neural_network.validate()

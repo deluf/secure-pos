@@ -21,7 +21,6 @@ class TrainingController(DevelopmentSystemController):
         else:
             # Calibrate
             calibration_data = self.parent.neural_network.calibrate()
-
             # Build Report
             self.view.build_report(calibration_data)
             # Read User Input (iterations decision)

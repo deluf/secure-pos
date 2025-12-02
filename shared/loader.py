@@ -4,10 +4,6 @@ from jsonschema.exceptions import ValidationError
 
 
 def load_and_validate_json_file(path: str, schema: dict):
-    """
-    Load config JSON from disk, validate it against the provided schema,
-    and return the parsed dictionary.
-    """
     # Load JSON
     with open(path, "r") as f:
         config_data = json.load(f)

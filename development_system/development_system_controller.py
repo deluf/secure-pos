@@ -2,19 +2,24 @@ from development_system.neural_network import NeuralNetwork
 from development_system.test_controller import TestController
 from development_system.training_controller import TrainingController
 from development_system.validation_controller import ValidationController
-from development_system.development_system_configuration import DevelopmentSystemConfiguration
-from shared.systemsio import SystemsIO
+from shared.systemsio import SystemsIO, Endpoint
+from shared.loader import load_and_validate_json_file
 
 
 class DevelopmentSystemController:
-    LISTENING_PORT = 6969
+    CONFIG_PATH = "development_system/input/development_system_configuration.json"
+    TRAIN_PATH = "files/train_set.csv"
+    VALIDATION_PATH = "files/validation_set.csv"
+    TEST_PATH = "files/test_set.csv"
 
     def __init__(self):
-        self.config = DevelopmentSystemConfiguration()
-        self.neural_network = NeuralNetwork(self.config.hidden_layer_size_range, self.config.hidden_neuron_per_layer_range)
+        self.config = self.load_and_validate_json_file(self.CONFIG_PATH,
+                                                       "development_system/schema/configuration.schema.json")
+        self.io = SystemsIO([Endpoint("/calibration-sets")], port=self.config["port"])
+        self.neural_network = NeuralNetwork(self.config.hidden_layer_size_range,
+                                            self.config.hidden_neuron_per_layer_range)
+        self.neural_network.number_iterations = 0
         self.service_flag = True #?
-        self.io = SystemsIO(listening_port=self.LISTENING_PORT)
-        self.ongoing_validation = False
         self.valid_classifier_exists = False
         self.number_iterations_fine = False
         self.valid_classifier_id = None
@@ -25,27 +30,31 @@ class DevelopmentSystemController:
 
     def run(self):
         # Receive Calibration Set
-        calibration_set = self.io.receive(CalibrationSet)() #???
-        self.neural_network.load_data(calibration_set) #???
-        print("[System] Calibration Set received")
+        files_to_receive = ["train_set.csv", "validation_set.csv", "test_set.csv"]
+        while files_to_receive:
+            received_file = self.io.receive("/calibration-sets")
+            if received_file not in files_to_receive:
+                continue
+            files_to_receive.remove(received_file)
+        print("[System] Calibration Sets received.")
 
         print("\n[System] --- DEVELOPMENT FLOW START ---")
-
         # Loop: while no valid classifier
         while not self.valid_classifier_exists:
-            self.ongoing_validation = False
             self.number_iterations_fine = False
+            self.neural_network.number_iterations = 0
 
             # 1. Training Phase
             print("\n[System] --- TRAINING PHASE START ---")
             self.training_ctrl.run()
+            # Loop: while number of iterations not fine
             while not self.number_iterations_fine:
                 try:
                     iterations = input(">> Insert number of iterations (eg. 100): ")
                     self.neural_network.set_number_iterations(iterations)
+                    self.training_ctrl.run()
                 except ValueError:
                     print("Insert a valid number.")
-                self.training_ctrl.run()
             print("\n[System] --- TRAINING PHASE END ---")
 
             # 2. Validation Phase
@@ -56,7 +65,7 @@ class DevelopmentSystemController:
         # 3. Test Phase
         print("\n[System] --- TEST PHASE START ---")
         self.test_ctrl.run()
-        print("\n[System] --- TESTPHASE END ---")
+        print("\n[System] --- TEST PHASE END ---")
 
 
 if __name__ == "__main__":

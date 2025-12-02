@@ -125,8 +125,8 @@ class SystemsIO:
                 if file_storage.filename == '':
                     continue  # Skip empty files
                 received_files.append(file_storage.filename)
-                os.makedirs("csv", exist_ok=True)
-                file_storage.save(f"csv/{file_storage.filename}")
+                os.makedirs("files", exist_ok=True)
+                file_storage.save(f"files/{file_storage.filename}")
                 self.queues[path].put(file_storage.filename)
                 print(f"[SystemsIO] Received FILE: {file_storage.filename}")
             if not received_files:
