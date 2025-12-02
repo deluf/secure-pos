@@ -35,4 +35,8 @@ class DataBalancingModel:
         """
         self.balancing_tolerance = balancing_tolerance
         self.target_sessions_per_class = target_sessions_per_class
-        self.session_counts = session_counts
+        # Ensures that all levels are present in the dictionary
+        self.session_counts = self.session_counts = {
+            level: session_counts.get(level, 0)
+            for level in AttackRiskLevel
+        }

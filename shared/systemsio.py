@@ -3,6 +3,7 @@ A server-side module for managing JSON and file-based IO operations
 """
 
 import json
+import os
 
 import threading
 import queue
@@ -123,8 +124,10 @@ class SystemsIO:
             for _, file_storage in request.files.items():
                 if file_storage.filename == '':
                     continue  # Skip empty files
-                self.queues[path].put(file_storage)
                 received_files.append(file_storage.filename)
+                os.makedirs("csv", exist_ok=True)
+                file_storage.save(f"csv/{file_storage.filename}")
+                self.queues[path].put(file_storage.filename)
                 print(f"[SystemsIO] Received FILE: {file_storage.filename}")
             if not received_files:
                 return jsonify({"error": "No valid files found"}), 400
@@ -134,18 +137,17 @@ class SystemsIO:
             " or 'multipart/form-data' with files"}), 415
 
     @staticmethod
-    def send_json(data: dict[str, Any], target: Address, endpoint: str) -> None:
+    def send_json(target: Address, endpoint: str, data: dict[str, Any]) -> None:
         """
         Sends a JSON payload to a specified target system
 
-        :param data: The JSON-serializable content to be sent
-        :type data: Any
         :param target: The target address
         :type target: Address
         :param endpoint: A specified endpoint path. Must start with '/'
         :type endpoint: str
-        :return: A boolean indicating the success or failure of the transmission.
-        :rtype: bool
+        :param data: The JSON-serializable content to be sent
+        :type data: Any
+        :return: None
         :raises requests.exceptions.RequestException: If the transmission fails
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
@@ -167,16 +169,16 @@ class SystemsIO:
         with open(file_path, 'rb') as file:
             requests.post(url, files={file_path: file}, timeout=None).raise_for_status()
 
-    def receive(self, endpoint: str) -> dict[str, Any] | FileStorage:
+    def receive(self, endpoint: str) -> dict[str, Any] | str:
         """
         Retrieve data from the specified endpoint queue.
-        Data can be either a JSON object or a FileStorage object.
+        Data can be either a JSON object or the path of a file.
         This method blocks indefinitely until data is available
 
         :param endpoint: The endpoint identifier. Must start with '/'
         :type endpoint: str
         :return: The next available item from the associated endpoint queue
-        :rtype: dict[str, Any] | FileStorage
+        :rtype: dict[str, Any] | str
         :raises ValueError: If the provided endpoint is not registered
         """
         if endpoint not in self.queues:

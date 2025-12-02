@@ -1,7 +1,7 @@
 """
 ...
 """
-
+import os
 import random
 import sys
 import time
@@ -11,6 +11,7 @@ from dataclasses import asdict
 import json
 import jsonschema
 from jsonschema import validate
+from werkzeug.datastructures import FileStorage
 
 from shared.systemsio import SystemsIO, Endpoint
 from shared.address import Address
@@ -39,9 +40,9 @@ def SIMULATE_INCOMING_PREPARED_SESSIONS(self, received_sessions):
         random.choice(list(AttackRiskLevel))
     )
     self.io.send_json(
-        asdict(dummy_session),
         Address("127.0.0.1", 3000),
-        "/prepared-session"
+        "/prepared-session",
+        asdict(dummy_session)
     )
     time.sleep(1)
 # End simulation #
@@ -55,7 +56,7 @@ class SegregationSystemController:
         self.configuration = self._json_load_and_validate(
             "configuration.json", "schemas/configuration.schema.json")
         self.io = SystemsIO(
-            [Endpoint("/prepared-session", "schemas/prepared_session.schema.json")],
+            [Endpoint("/prepared-session", "schemas/prepared_session.schema.json"), Endpoint("/csv")],
             self.configuration["port"]
         )
         self.db = PreparedSessionsDB()
@@ -136,7 +137,22 @@ class SegregationSystemController:
 
         self.splitter.split(sessions)
 
-        # FIXME: SEND
+        time.sleep(5)
+
+        self.io.send_file(Address("127.0.0.1", 3000), "/csv", "output/train_set.csv")
+        time.sleep(2)
+        self.io.send_file(Address("127.0.0.1", 3000), "/csv", "output/validation_set.csv")
+        time.sleep(2)
+        self.io.send_file(Address("127.0.0.1", 3000), "/csv", "output/test_set.csv")
+
+        time.sleep(5)
+
+        files_to_receive = ["train_set.csv", "validation_set.csv", "test_set.csv"]
+        while files_to_receive:
+            received_file = self.io.receive("/csv")
+            if received_file not in files_to_receive:
+                continue
+            files_to_receive.remove(received_file)
 
 if __name__ == "__main__":
     controller = SegregationSystemController()
