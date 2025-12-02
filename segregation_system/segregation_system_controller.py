@@ -136,23 +136,10 @@ class SegregationSystemController:
             # FIXME: ...
 
         self.splitter.split(sessions)
-
-        time.sleep(5)
-
         self.io.send_file(Address("127.0.0.1", 3000), "/csv", "output/train_set.csv")
-        time.sleep(2)
         self.io.send_file(Address("127.0.0.1", 3000), "/csv", "output/validation_set.csv")
-        time.sleep(2)
         self.io.send_file(Address("127.0.0.1", 3000), "/csv", "output/test_set.csv")
 
-        time.sleep(5)
-
-        files_to_receive = ["train_set.csv", "validation_set.csv", "test_set.csv"]
-        while files_to_receive:
-            received_file = self.io.receive("/csv")
-            if received_file not in files_to_receive:
-                continue
-            files_to_receive.remove(received_file)
 
 if __name__ == "__main__":
     controller = SegregationSystemController()
