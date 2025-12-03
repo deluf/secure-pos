@@ -1,6 +1,7 @@
 """
 Provides functionalities for visualizing the data coverage report as a radar chart
 """
+import os
 
 import plotly.graph_objects as go
 import plotly.express as px
@@ -49,5 +50,6 @@ class DataCoverageView:
             title="Data coverage report"
         )
 
+        os.makedirs("output", exist_ok=True)
         fig.write_image("output/data_coverage_report.png")
         print("[DataCoverageView] Data coverage report saved to 'output/data_coverage_report.png'")

@@ -1,6 +1,7 @@
 """
 Provides functionalities for visualizing the data balancing report as a bar chart
 """
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,5 +50,6 @@ class DataBalancingView:
         ax.set_title("Data balancing report")
         ax.legend()
 
+        os.makedirs("output", exist_ok=True)
         plt.savefig("output/data_balancing_report.png")
         print("[DataBalancingView] Data balancing report saved to 'output/data_balancing_report.png'")

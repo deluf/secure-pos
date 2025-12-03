@@ -114,6 +114,7 @@ class PreparedSessionsDB:
 
         with self.conn:
             self.conn.execute(query, values)
+        print(f"[SessionsDB] Stored {prepared_session} session in the database")
 
     def get_all(self) -> list[PreparedSession]:
         """
@@ -144,6 +145,7 @@ class PreparedSessionsDB:
                 label = row[7]
             )
             results.append(session)
+        print(f"[SessionsDB] Loaded {len(results)} sessions from the database")
         return results
 
     def delete_all(self) -> None:
@@ -156,3 +158,4 @@ class PreparedSessionsDB:
 
         with self.conn:
             self.conn.execute(query)
+        print("[SessionsDB] Deleted all sessions from the database")

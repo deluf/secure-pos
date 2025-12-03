@@ -3,6 +3,7 @@ Module for splitting a dataset of prepared sessions into training, validation, a
 """
 
 import csv
+import os
 import uuid
 from dataclasses import fields, astuple
 from pathlib import Path
@@ -72,11 +73,22 @@ class DataSplitter:
 
         outputs = []
         splits_id = uuid.uuid4()
+        os.makedirs("output", exist_ok=True)
         for split_name, split_data in zip(["train", "validation", "test"], [train_set, val_set, test_set]):
             store_filename = f"output/{split_name}_set.{splits_id}.csv"
             self._save_to_csv(store_filename, split_data)
             outputs.append(store_filename)
         return outputs
+
+    @staticmethod
+    def delete(filenames: list[str]) -> None:
+        """
+
+        :param filenames:
+        :return:
+        """
+        for filename in filenames:
+            Path(filename).unlink(missing_ok=True)
 
     @staticmethod
     def _save_to_csv(filename: str, data: list[PreparedSession]) -> None:
@@ -94,4 +106,4 @@ class DataSplitter:
             # Write headers based on the Dataclass fields
             writer.writerow([field.name for field in fields(PreparedSession)])
             writer.writerows(astuple(item) for item in data)
-        print(f"[DataSplitter] Saved {len(data)} records to '{filename}'")
+        print(f"[DataSplitter] Saved {len(data)} sessions to '{filename}'")

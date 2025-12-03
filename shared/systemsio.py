@@ -4,6 +4,7 @@ A server-side module for managing JSON and file-based IO operations
 
 import json
 import os
+import logging
 
 import threading
 import queue
@@ -16,6 +17,10 @@ from flask import Flask, request, jsonify, Response
 from jsonschema import validate, ValidationError
 
 from shared.address import Address
+
+# Disable Flask's default logging
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.WARNING)
 
 class Endpoint:
     """
@@ -149,6 +154,7 @@ class SystemsIO:
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
         requests.post(url, json=data, timeout=None).raise_for_status()
+        print(f"[SystemsIO] Sent to {url} JSON payload: {data}")
 
     @staticmethod
     def send_files(target: Address, endpoint: str, file_paths: list[str]) -> None:
@@ -165,7 +171,6 @@ class SystemsIO:
         :raises requests.HTTPError: If the HTTP request fails
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
-
         # ExitStack allows us to manage a dynamic number of context managers (open files)
         with ExitStack() as stack:
             files = []
@@ -175,6 +180,7 @@ class SystemsIO:
                 filename = os.path.basename(path)
                 files.append((filename, file_obj))
             requests.post(url, files=files, timeout=None).raise_for_status()
+        print(f"[SystemsIO] Sent to {url} FILES: {file_paths}")
 
     def receive(self, endpoint: str) -> dict[str, Any] | str:
         """
