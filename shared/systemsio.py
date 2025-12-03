@@ -7,6 +7,7 @@ import os
 
 import threading
 import queue
+from contextlib import ExitStack
 from typing import Any
 
 import requests
@@ -120,11 +121,13 @@ class SystemsIO:
         if request.files:
             path = request.path
             os.makedirs("files", exist_ok=True)
+            received_files = []
             for _, file_storage in request.files.items():
                 filename = f"files/{file_storage.filename}"
                 file_storage.save(filename)
-                self.queues[path].put(filename)
-                print(f"[SystemsIO] Received FILE: {filename}")
+                received_files.append(filename)
+            self.queues[path].put(received_files)
+            print(f"[SystemsIO] Received FILES: {received_files}")
             return jsonify({"status": "Ok"}), 200
 
         return jsonify({"error": "Unsupported Media Type. Send 'application/json'"
@@ -148,20 +151,30 @@ class SystemsIO:
         requests.post(url, json=data, timeout=None).raise_for_status()
 
     @staticmethod
-    def send_file(target: Address, endpoint: str, file_path: str) -> None:
+    def send_files(target: Address, endpoint: str, file_paths: list[str]) -> None:
         """
-        Sends a file to a specified endpoint on a target address using an HTTP POST request.
+        Sends one or more files to a specified endpoint on a target address using HTTP POST
 
         :param target: An object containing the target's IP address and port information
         :type target: Address
-        :param endpoint: The API endpoint where the file will be sent
-        :param file_path: The file system path to the file that will be sent
+        :param endpoint: The API endpoint where the files will be sent
+        :type endpoint: str
+        :param file_paths: A list of file system paths to the files that will be sent
+        :type file_paths: list[str]
         :return: None
         :raises requests.HTTPError: If the HTTP request fails
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
-        with open(file_path, 'rb') as file:
-            requests.post(url, files={file_path: file}, timeout=None).raise_for_status()
+
+        # ExitStack allows us to manage a dynamic number of context managers (open files)
+        with ExitStack() as stack:
+            files = []
+            for path in file_paths:
+                # Open the file and ensure it closes automatically when we exit the block
+                file_obj = stack.enter_context(open(path, 'rb'))
+                filename = os.path.basename(path)
+                files.append((filename, file_obj))
+            requests.post(url, files=files, timeout=None).raise_for_status()
 
     def receive(self, endpoint: str) -> dict[str, Any] | str:
         """
