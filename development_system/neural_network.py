@@ -30,7 +30,7 @@ class NeuralNetwork:
         le = LabelEncoder()
         df["label"] = le.fit_transform(df["label"])
         print(f"[NeuralNetwork] Data loaded correctly and labeled encoded.")
-        return df.drop(columns="label"), df["label"]
+        return df.drop(columns=["label", "id"]), df["label"]
         #x_temp, self.x_test, y_temp, self.y_test = train_test_split(x, y, test_size=0.2, random_state=42)
         #self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(x_temp, y_temp, test_size=0.25, random_state=42)
 
