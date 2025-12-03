@@ -5,7 +5,7 @@ class FlowAnalysis:
     TARGET_SEQUENCE_LENGTH = 10
 
     @staticmethod
-    def mark_missing_samples(session: RawSession, config: dict) -> bool:
+    def mark_missing_samples(session: RawSession, missing_samples_threshold: float) -> bool:
         """
         Calculates the TOTAL missing samples across all columns.
         If the total is within the threshold, pads columns to the target length (10).
@@ -26,8 +26,6 @@ class FlowAnalysis:
         total_missing_count = 0
         for col_list in columns_data:
             total_missing_count += max(0, target_length - len(col_list))
-
-        missing_samples_threshold = config["missingSamplesThreshold"]
 
         if total_missing_count > missing_samples_threshold * target_length * len(columns_data):
             return False

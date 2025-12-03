@@ -8,14 +8,20 @@ from shared.address import Address
 
 
 class IngestionSystemController:
-    CONFIG_PATH = "ingestion_system/ingestion_system_configuration.json"
-    RECORD_SCHEMA = "ingestion_system/record_schema.json"
-    CONFIG_SCHEMA = "ingestion_system/config_schema.json"
+    LOCAL_CONFIG_PATH = "ingestion_system/ingestion_system_configuration.json"
+    SHARED_CONFIG_PATH = "shared/shared_config.json"
+    RECORD_SCHEMA = "ingestion_system/record.schema.json"
+    LOCAL_CONFIG_SCHEMA = "ingestion_system/config.schema.json"
+    SHARED_CONFIG_SCHEMA = "shared/shared_config.schema.json"
 
     def __init__(self):
-        self.config = load_and_validate_json_file(self.CONFIG_PATH, self.CONFIG_SCHEMA)
+        self.local_config = load_and_validate_json_file(self.LOCAL_CONFIG_PATH, self.LOCAL_CONFIG_SCHEMA)
+        self.shared_config = load_and_validate_json_file(self.SHARED_CONFIG_PATH, self.SHARED_CONFIG_SCHEMA)
+        self.ingestion_system_address = Address(**self.shared_config['addresses']['ingestionSystem'])
+        self.preparation_system_address = Address(**self.shared_config['addresses']['preparationSystem'])
+        self.evaluation_system_address = Address(**self.shared_config['addresses']['evaluationSystem'])
         self.db = RawSessionDB()
-        self.io = SystemsIO([Endpoint("/api/record", self.RECORD_SCHEMA)], port=self.config['port'])
+        self.io = SystemsIO([Endpoint("/api/record", self.RECORD_SCHEMA)], port=self.ingestion_system_address.port)
         self.analysis = FlowAnalysis()
         self.is_evaluation = True
         self.phase_counter = 0
@@ -30,23 +36,26 @@ class IngestionSystemController:
                 continue
 
             self.db.store(json_record)
-            raw_session = self.db.get_session(uuid, self.config)
+            raw_session = self.db.get_session(uuid, self.local_config['minimumRecords'])
 
         self.db.remove(raw_session.uuid)
 
-        if not self.analysis.mark_missing_samples(raw_session, self.config):
+        if not self.analysis.mark_missing_samples(raw_session, self.local_config["missingSamplesThreshold"]):
             return
 
         self._handle_phase(raw_session)
 
-        self.io.send_json(Address(**self.config['preparationSystemAddress']), "/process", asdict(raw_session))
+        self.io.send_json(self.preparation_system_address, "/process", asdict(raw_session))
 
     def _handle_phase(self, session: RawSession):
-        limit = self.config['evaluationPhaseWindow'] if self.is_evaluation else self.config['productionPhaseWindow']
+        limit = self.shared_config['systemPhase']['evaluationPhaseWindow'] if self.is_evaluation else self.shared_config['systemPhase']['productionPhaseWindow']
 
         if self.is_evaluation and session.label is not None:
-            self.io.send_json(Address(**self.config['evaluationSystemAddress']),
-                              "evaluate", {"uuid": session.uuid, "/label": session.label})
+            self.io.send_json(
+                self.evaluation_system_address,
+                "evaluate",
+                {"uuid": session.uuid, "/label": session.label}
+            )
 
         self.phase_counter += 1
         if self.phase_counter >= limit:

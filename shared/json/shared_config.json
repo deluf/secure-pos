@@ -1,0 +1,34 @@
+{
+    "serviceFlag": true,
+    "systemPhase": {
+        "productionPhase": true,
+        "evaluationPhaseWindow": 100,
+        "productionPhaseWindow": 500
+    },
+    "addresses": {
+        "ingestionSystem": {
+            "ip": "127.0.0.1",
+            "port": 8001
+        },
+        "preparationSystem": {
+            "ip": "127.0.0.1",
+            "port": 8002
+        },
+        "segregationSystem": {
+            "ip": "127.0.0.1",
+            "port": 8003
+        },
+        "developmentSystem": {
+            "ip": "127.0.0.1",
+            "port": 8004
+        },
+        "classificationSystem": {
+            "ip": "127.0.0.1",
+            "port": 8005
+        },
+        "evaluationSystem": {
+            "ip": "127.0.0.1",
+            "port": 8006
+        }
+    }
+}

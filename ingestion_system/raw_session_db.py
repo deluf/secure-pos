@@ -1,5 +1,6 @@
 import sqlite3
 import json
+from numbers import Number
 from typing import Optional
 from ingestion_system.raw_session import RawSession
 
@@ -61,7 +62,7 @@ class RawSessionDB:
 
         print(f"[RawSessionDB] Stored {record_type} for UUID {uuid}")
 
-    def get_session(self, uuid: str, config: dict) -> Optional[RawSession]:
+    def get_session(self, uuid: str, minimum_records: int) -> Optional[RawSession]:
         """
         Returns the session ONLY if all data parts are present.
         """
@@ -75,7 +76,7 @@ class RawSessionDB:
 
         trans_blob, net_blob, loc_blob, label_blob = row
 
-        if sum(x is not None for x in [trans_blob, net_blob, loc_blob, label_blob]) < config['minimumRecords']:
+        if sum(x is not None for x in [trans_blob, net_blob, loc_blob, label_blob]) < minimum_records:
             return None
 
         t_data = json.loads(trans_blob)
