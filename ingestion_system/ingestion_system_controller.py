@@ -1,3 +1,4 @@
+from shared.message_counter import PhaseMessageCounter
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from ingestion_system.raw_session import RawSession
@@ -12,7 +13,7 @@ class IngestionSystemController:
     SHARED_CONFIG_PATH = "shared/shared_config.json"
     RECORD_SCHEMA = "ingestion_system/record.schema.json"
     LOCAL_CONFIG_SCHEMA = "ingestion_system/config.schema.json"
-    SHARED_CONFIG_SCHEMA = "shared/shared_config.schema.json"
+    SHARED_CONFIG_SCHEMA = "shared/json/shared_config.schema.json"
 
     def __init__(self):
         self.local_config = load_and_validate_json_file(self.LOCAL_CONFIG_PATH, self.LOCAL_CONFIG_SCHEMA)
@@ -23,8 +24,9 @@ class IngestionSystemController:
         self.db = RawSessionDB()
         self.io = SystemsIO([Endpoint("/api/record", self.RECORD_SCHEMA)], port=self.ingestion_system_address.port)
         self.analysis = FlowAnalysis()
-        self.is_evaluation = True
-        self.phase_counter = 0
+        evaluation_window = self.shared_config['systemPhase']['evaluationPhaseWindow']
+        production_window = self.shared_config['systemPhase']['productionPhaseWindow']
+        self.counter = PhaseMessageCounter("state/ingestion_counter.json", evaluation_window, production_window)
 
     def run(self):
         raw_session = None
@@ -48,19 +50,12 @@ class IngestionSystemController:
         self.io.send_json(self.preparation_system_address, "/process", asdict(raw_session))
 
     def _handle_phase(self, session: RawSession):
-        limit = self.shared_config['systemPhase']['evaluationPhaseWindow'] if self.is_evaluation else self.shared_config['systemPhase']['productionPhaseWindow']
-
-        if self.is_evaluation and session.label is not None:
+        if self.counter.register_message():
             self.io.send_json(
                 self.evaluation_system_address,
                 "evaluate",
-                {"uuid": session.uuid, "/label": session.label}
+                {"uuid": session.uuid, "label": session.label}
             )
-
-        self.phase_counter += 1
-        if self.phase_counter >= limit:
-            self.is_evaluation = not self.is_evaluation
-            self.phase_counter = 0
 
 
 if __name__ == "__main__":

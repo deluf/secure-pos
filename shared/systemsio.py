@@ -182,7 +182,7 @@ class SystemsIO:
             requests.post(url, files=files, timeout=None).raise_for_status()
         print(f"[SystemsIO] Sent to {url} FILES: {file_paths}")
 
-    def receive(self, endpoint: str) -> dict[str, Any] | str:
+    def receive(self, endpoint: str) -> dict[str, Any] | list[str]:
         """
         Retrieve data from the specified endpoint queue.
         Data can be either a JSON object or the path of a file.

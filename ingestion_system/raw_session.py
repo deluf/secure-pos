@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from shared.attack_risk_level import AttackRiskLevel
 from typing import List, Optional
 
 
@@ -14,4 +15,4 @@ class RawSession:
     dest_ip: List[Optional[str]]
     longitude: List[Optional[float]]
     latitude: List[Optional[float]]
-    label: Optional[int] = None
+    label: Optional[AttackRiskLevel] = None
