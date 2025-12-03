@@ -1,12 +1,27 @@
+from random import random
+
+
 class ValidationView:
     @staticmethod
-    def build_report(scores):
+    def build_report(models_info):
+        top_five = sorted(models_info, key=lambda x: x["validation_error"])[:5]
         print("\n--- VALIDATION REPORT ---")
-        for i, score in enumerate(scores):
-            print(f"Classifier number {i}: {score}")
+        #print("ID - Validation Error - Training Error - Difference - # of Layers - # of Neurons - Network Complexity")
+        for model in top_five:
+            print(model)
         print("-------------------------")
+        return top_five
 
     @staticmethod
-    def read_user_input(self):
+    def read_user_input(flag, top_five, overfitting_tolerance):
         # Data Scientist: Valid classifier decision
-        return input(">> Data Scientist: Is there a valid classifier? (id/n): ")
+        if not flag:
+            return input(">> Data Scientist: Is there a valid classifier? (id/n): ")
+        best = top_five[0]
+        second_best = top_five[1]
+        if random() < 0.05 or best["difference"] > overfitting_tolerance:
+            return "n"
+        val_err_diff = best["validation_error"] - second_best["validation_error"]
+        if val_err_diff >= 0.05 or second_best["difference"] > overfitting_tolerance:
+            return best["id"]
+        return second_best["id"] if second_best["network_complexity"] < best["network_complexity"] else best["id"]
