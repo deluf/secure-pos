@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "properties": {
+    "minimumRecords": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "missingSamplesThreshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": [
+    "minimumRecords",
+    "missingSamplesThreshold"
+  ]
+}
