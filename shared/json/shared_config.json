@@ -7,27 +7,27 @@
     },
     "addresses": {
         "ingestionSystem": {
-            "ip": "0.0.0.0",
+            "ip": "127.0.0.1",
             "port": 8001
         },
         "preparationSystem": {
-            "ip": "0.0.0.0",
+            "ip": "127.0.0.1",
             "port": 8002
         },
         "segregationSystem": {
-            "ip": "0.0.0.0",
+            "ip": "127.0.0.1",
             "port": 8003
         },
         "developmentSystem": {
-            "ip": "0.0.0.0",
+            "ip": "127.0.0.1",
             "port": 8004
         },
         "classificationSystem": {
-            "ip": "0.0.0.0",
+            "ip": "127.0.0.1",
             "port": 8005
         },
         "evaluationSystem": {
-            "ip": "0.0.0.0",
+            "ip": "127.0.0.1",
             "port": 8006
         }
     }
