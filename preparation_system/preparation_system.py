@@ -49,7 +49,7 @@ class PreparationSystem:
 			f"Development phase: {self.config['developmentPhase']}"
 		)
 
-		while True:
+		while self.shared_config["serviceFlag"]:
 			data = self.io.receive(self.PROCESS_ENDPOINT)
 			if data is None:
 				continue

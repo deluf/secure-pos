@@ -48,8 +48,6 @@ class FeatureExtractor:
 		if session.label is not None:
 			result["label"] = session.label
 
-		# At this point numeric lists (timestamp, amount, longitude, latitude)
-		# are expected to be fully populated (no None) thanks to DataCorrector.
 		timestamps = list(session.timestamp)
 		amounts = list(session.amount)
 		longitudes = list(session.longitude)

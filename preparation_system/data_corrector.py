@@ -34,6 +34,10 @@ class DataCorrector:
 			session.longitude = _fill_with_mode(session.longitude)
 		if session.latitude:
 			session.latitude = _fill_with_mode(session.latitude)
+		if session.source_ip:
+			session.source_ip = _fill_with_mode(session.source_ip)
+		if session.dest_ip:
+			session.dest_ip = _fill_with_mode(session.dest_ip)
 
 		return session
 
