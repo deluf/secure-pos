@@ -3,6 +3,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_iris
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 from shared.range import Range
 
 
@@ -26,8 +27,10 @@ class NeuralNetwork:
         print(f"[NeuralNetwork] Load data from {csv}")
         df = pd.read_csv(csv)
         #self.features, self.labels = df.drop(columns="label"), df["label"]
-        print(f"[NeuralNetwork] Data loaded correctly.")
-        return df.drop(columns="label"), df["label"]
+        le = LabelEncoder()
+        df["label"] = le.fit_transform(df["label"])
+        print(f"[NeuralNetwork] Data loaded correctly and labeled encoded.")
+        return df.drop(columns=["label", "id"]), df["label"]
         #x_temp, self.x_test, y_temp, self.y_test = train_test_split(x, y, test_size=0.2, random_state=42)
         #self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(x_temp, y_temp, test_size=0.25, random_state=42)
 
