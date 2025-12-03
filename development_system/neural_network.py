@@ -2,6 +2,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_iris
+import pandas as pd
 from shared.range import Range
 
 
@@ -15,16 +16,20 @@ class NeuralNetwork:
         self.current_layer = hidden_layer_size_range.min
         self.current_neuron_per_layer = hidden_neuron_per_layer_range.min
         self.models = []
+        self.models_info = []
         self.x_train, self.x_val, self.x_test = None, None, None
         self.y_train, self.y_val, self.y_test = None, None, None
+        self.features, self.labels = None, None
 
-    def load_data_from_json(self, json_data): #CHIEDERE A FDL
-        print("[NeuralNetwork] Caricamento dati ricevuti via API...")
-        # Per semplicità, se il JSON è vuoto o mock, carichiamo Iris come fallback
-        data = load_iris()
-        x, y = data.data, data.target
-        x_temp, self.x_test, y_temp, self.y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-        self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(x_temp, y_temp, test_size=0.25, random_state=42)
+    @staticmethod
+    def load_data_from_csv(csv):
+        print(f"[NeuralNetwork] Load data from {csv}")
+        df = pd.read_csv(csv)
+        #self.features, self.labels = df.drop(columns="label"), df["label"]
+        print(f"[NeuralNetwork] Data loaded correctly.")
+        return df.drop(columns="label"), df["label"]
+        #x_temp, self.x_test, y_temp, self.y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+        #self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(x_temp, y_temp, test_size=0.25, random_state=42)
 
     def set_avg_hyper_params(self, hidden_layer_size_range, hidden_neuron_per_layer_range):
         self.hidden_layer_size = (hidden_layer_size_range.min + hidden_layer_size_range.max) / 2
@@ -49,20 +54,42 @@ class NeuralNetwork:
         print("[NeuralNetwork] HyperParams checked and updated if necessary.")
         return ongoing_validation
 
-    def calibrate(self):
+    def calibrate(self, path):
         print(f"[NeuralNetwork] Training ({self.number_iterations} iterations)...")
         layers = (self.hidden_neuron_per_layer,) * self.hidden_layer_size
-        model = MLPClassifier(max_iter=self.number_iterations, random_state=42,  hidden_layer_sizes=layers)
+        model = MLPClassifier(
+                              max_iter=self.number_iterations,
+                              random_state=42,
+                              hidden_layer_sizes=layers,
+                              early_stopping=False,
+                              tol=0.0,  # prevents early stop due to tolerance threshold
+                              n_iter_no_change=self.number_iterations  # prevents early stop due to loss function
+                              )
+        self.x_train, self.y_train = self.load_data_from_csv(path)
         model.fit(self.x_train, self.y_train)
         self.models.append(model)
-        return {'training_accuracy': model.score(self.x_train, self.y_train)}
+        self.models_info.append(
+                                {
+                                    "id": len(self.models) - 1,
+                                    "validation_error": None,
+                                    "training_error": 1 - model.score(self.x_train, self.y_train),
+                                    "difference": None,
+                                    "hidden_neuron_per_layer": self.hidden_neuron_per_layer,
+                                    "hidden_layer_size": self.hidden_layer_size,
+                                    "network_complexity": self.hidden_neuron_per_layer * self.hidden_layer_size
+                                }
+        )
+        return model.loss_curve_
 
-    def validate(self):
-        scores = []
-        for model in self.models:
-            scores.append(model.score(self.x_val, self.y_val))
-        return scores
+    def validate(self, path):
+        self.x_val, self.y_val = self.load_data_from_csv(path)
+        for c_id, model in enumerate(self.models):
+            self.models_info[c_id]["validation_error"] = 1 - model.score(self.x_val, self.y_val)
+            val_err, train_err = self.models_info[c_id]["validation_error"], self.models_info[c_id]["training_error"]
+            self.models_info[c_id]["difference"] = (val_err - train_err) / val_err
 
-    def test(self, id):
-        model = self.models[id]
-        return accuracy_score(self.y_test, model.predict(self.x_test))
+    def test(self, classifier_id, path):
+        self.x_test, self.y_test = self.load_data_from_csv(path)
+        model = self.models[classifier_id]
+        #return accuracy_score(self.y_test, model.predict(self.x_test))
+        return 1 - model.score(self.x_test, self.y_test), self.models_info[classifier_id]

@@ -2,31 +2,31 @@ from development_system.development_system_controller import DevelopmentSystemCo
 from development_system.validation_view import ValidationView
 
 
-class ValidationController(DevelopmentSystemController):
+class ValidationController:
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
         self.view = ValidationView()
         self.ongoing_validation = False
 
-    def run(self):
+    def run(self, test_set, validation_set):
         # Set HyperParams
         self.ongoing_validation = self.parent.neural_network.set_hyper_params()
         print("[Validation] Initial HyperParams set (Grid Search).")
 
         while self.ongoing_validation:
             # Calibrate
-            self.parent.neural_network.calibrate()
+            self.parent.neural_network.calibrate(test_set)
             # Set HyperParams
             self.ongoing_validation = self.parent.neural_network.set_hyper_params()
 
         # Validation score
-        val_score = self.parent.neural_network.validate()
+        self.parent.neural_network.validate(validation_set)
         # Build Report
-        self.view.build_report(val_score)
+        top_five = self.view.build_report(self.parent.neural_network.models_info)
 
         # Read User Input (Classifier decision)
-        res = self.view.read_user_input()
+        res = self.view.read_user_input(self.parent.service_flag, top_five, self.parent.config["overfitting_tolerance"])
         if res != "n" and 0 <= int(res) <= len(self.parent.neural_network.models):
             self.parent.valid_classifier_id = int(res)
             self.parent.valid_classifier_exists = True

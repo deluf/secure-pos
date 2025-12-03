@@ -1,34 +1,42 @@
-from development_system.classifier import Classifier
-from development_system.development_system_controller import DevelopmentSystemController
 from development_system.test_view import TestView
-import joblib
-import io
+import json
+from joblib import dump
+from shared.address import Address
 from shared.systemsio import SystemsIO
 
 
-class TestController(DevelopmentSystemController):
+class TestController:
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
         self.view = TestView()
 
-    def run(self):
+    def run(self, test_set):
         # Run Test
-        print("[Test] Final test execution...")
-        test_score = self.parent.neural_network.test(self.parent.valid_classifier_id)
+        print(f"[Test] Final test execution on classifier {self.parent.valid_classifier_id}...")
+        test_error, model_info = self.parent.neural_network.test(self.parent.valid_classifier_id, test_set)
         # Build Report
-        self.view.build_report(test_score)
+        self.view.build_report(test_error, model_info, self.parent.config["generalizationTolerance"])
         # Read User Input (Test passed)
-        test_passed, hidden_layer_size, hidden_neuron_per_layer = self.view.read_user_input()
+        test_passed, hidden_layer_size, hidden_neuron_per_layer = self.view.read_user_input(self.parent.service_flag)
 
         if test_passed:
-            # Create Classifier
-            # Send Classifier
+            # Create and Send Classifier
             model = self.parent.neural_network.models[self.parent.valid_classifier_id]
-            pickled = pickle.dumps(model, protocol=pickle.HIGHEST_PROTOCOL)
-            b64 = base64.b64encode(pickled).decode('ascii')
+            dump(model, "classifier/classifier.joblib")
+            address = Address(**self.parent.config["classificationSystemAddress"])
+            SystemsIO.send_files(address, "api/classifier", ["development_system/classifier/classifier.joblib"])
+            print("[Test] Classifier sent")
         else:
-            # Send TestResults
-            print(f"New range hidden layers size: {hidden_layer_size}")
-            print(f"New range neurons per hidden layer: {hidden_neuron_per_layer}")
+            # Reconfigure hyper params ranges
+            print(f"[Test] New range hidden layers size: {hidden_layer_size}")
+            print(f"[Test] New range neurons per hidden layer: {hidden_neuron_per_layer}")
+            path = self.parent.CONFIG_PATH
+            with open(path, "r") as f:
+                data = json.load(f)
+            data["hiddenNeuronPerLayerRange"] = hidden_layer_size
+            data["hiddenNeuronPerLayerRange"] = hidden_neuron_per_layer
+            with open(path, "w") as f:
+                json.dump(data, f, indent=2)
+            self.parent.reset()
         return test_passed
