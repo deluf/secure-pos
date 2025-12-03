@@ -1,7 +1,5 @@
 {
     "developmentPhase": false,
-    "classificationSystemAddress": "localhost:5000",
-    "segregationSystemAddress": "localhost:6000",
     "maxTransactionsAmount": 1000,
     "extractedFeatures": [
         "meanAbsoluteDeviationTransactionTimestamps",
