@@ -23,7 +23,7 @@ class TestController:
         if test_passed:
             # Create and Send Classifier
             model = self.parent.neural_network.models[self.parent.valid_classifier_id]
-            os.makedirs("classifier", exist_ok=True)
+            os.makedirs("development_system/classifier", exist_ok=True)
             dump(model, "development_system/classifier/classifier.joblib")
             address = self.parent.classification_address
             SystemsIO.send_files(address, "/api/classifier", ["development_system/classifier/classifier.joblib"])

@@ -22,8 +22,8 @@ class DevelopmentSystemController:
         self.service_flag = self.shared_config["serviceFlag"]
         prep_cfg = self.shared_config["addresses"]["developmentSystem"]
         self.io = SystemsIO([Endpoint(self.PROCESS_ENDPOINT)],
-                            port=int(prep_cfg["port"]),
-                            host=prep_cfg["ip"])
+                            port=int(prep_cfg["port"])
+                            )
         self.classification_address = Address(
             self.shared_config["addresses"]["classificationSystem"]["ip"],
             int(self.shared_config["addresses"]["classificationSystem"]["port"])

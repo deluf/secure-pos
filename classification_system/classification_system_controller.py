@@ -40,7 +40,7 @@ class ClassificationSystemController:
             return
 
         if not self.service_flag:
-            model = joblib.load("state/saved_model.joblib")
+            model = joblib.load("classification_system/state/saved_model.joblib")
 
         prepared_session = self.io.receive("/api/prepared-session")
         out_label = self.flow.classify(model, prepared_session)

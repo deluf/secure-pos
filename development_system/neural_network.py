@@ -28,8 +28,8 @@ class NeuralNetwork:
         return df.drop(columns=["label", "uuid"]), df["label"]
 
     def set_avg_hyper_params(self, hidden_layer_size_range, hidden_neuron_per_layer_range):
-        self.hidden_layer_size = (hidden_layer_size_range.min + hidden_layer_size_range.max) / 2
-        self.hidden_neuron_per_layer = (hidden_neuron_per_layer_range.min + hidden_neuron_per_layer_range.max) / 2
+        self.hidden_layer_size = (hidden_layer_size_range['min'] + hidden_layer_size_range['max']) // 2
+        self.hidden_neuron_per_layer = (hidden_neuron_per_layer_range['min'] + hidden_neuron_per_layer_range['max']) // 2
         print("[NeuralNetwork] Average hyper parameters set.")
 
     def set_number_iterations(self, iterations):
@@ -38,14 +38,14 @@ class NeuralNetwork:
 
     def set_hyper_params(self):
         ongoing_validation = False
-        new_neuron_per_layer = self.current_neuron_per_layer + self.hidden_neuron_per_layer_range.step
-        if new_neuron_per_layer <= self.hidden_neuron_per_layer_range.max:
+        new_neuron_per_layer = self.current_neuron_per_layer + self.hidden_neuron_per_layer_range['step']
+        if new_neuron_per_layer <= self.hidden_neuron_per_layer_range['max']:
             self.current_neuron_per_layer = new_neuron_per_layer
             ongoing_validation = True
         else:
-            self.current_neuron_per_layer = self.hidden_neuron_per_layer_range.min
-            if self.current_layer + self.hidden_layer_size_range.step <= self.hidden_layer_size_range.max:
-                self.current_layer += self.hidden_layer_size_range.step
+            self.current_neuron_per_layer = self.hidden_neuron_per_layer_range['min']
+            if self.current_layer + self.hidden_layer_size_range['step'] <= self.hidden_layer_size_range['max']:
+                self.current_layer += self.hidden_layer_size_range['step']
                 ongoing_validation = True
         print("[NeuralNetwork] HyperParams checked and updated if necessary.")
         return ongoing_validation

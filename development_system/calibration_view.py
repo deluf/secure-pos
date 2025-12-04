@@ -13,7 +13,7 @@ class CalibrationView:
         plt.ylabel('Validation Loss')
         plt.title('Training Loss Curve')
         plt.legend()
-        os.makedirs("plot", exist_ok=True)
+        os.makedirs("development_system/plot", exist_ok=True)
         plt.savefig("development_system/plot/calibration_plot.png")
         plt.close()
         print("--------------------------")

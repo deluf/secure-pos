@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from sklearn.neural_network import MLPClassifier
@@ -13,7 +14,8 @@ class FlowClassification:
         model = joblib.load(filename)
         if not isinstance(model, MLPClassifier):
             raise TypeError("Loaded object is not an MLPClassifier")
-        joblib.dump(model, "state/saved_model.joblib")
+        os.makedirs("classification_system/state", exist_ok=True)
+        joblib.dump(model, "classification_system/state/saved_model.joblib")
         return model
 
     @staticmethod

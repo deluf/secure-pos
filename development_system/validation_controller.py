@@ -25,7 +25,7 @@ class ValidationController:
         top_five = self.view.build_report(self.parent.neural_network.models_info)
 
         # Read User Input (Classifier decision)
-        res = self.view.read_user_input(self.parent.service_flag, top_five, self.parent.config["overfitting_tolerance"])
+        res = self.view.read_user_input(self.parent.service_flag, top_five, self.parent.config["overfittingTolerance"])
         if res != "n" and 0 <= int(res) <= len(self.parent.neural_network.models):
             self.parent.valid_classifier_id = int(res)
             self.parent.valid_classifier_exists = True
