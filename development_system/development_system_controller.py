@@ -28,8 +28,8 @@ class DevelopmentSystemController:
             self.shared_config["addresses"]["classificationSystem"]["ip"],
             int(self.shared_config["addresses"]["classificationSystem"]["port"])
         )
-        self.neural_network = NeuralNetwork(self.config["hidden_layer_size_range"],
-                                            self.config["hidden_neuron_per_layer_range"])
+        self.neural_network = NeuralNetwork(self.config["hiddenLayerSizeRange"],
+                                            self.config["hiddenNeuronPerLayerRange"])
         self.neural_network.number_iterations = 0
         self.valid_classifier_exists = False
         self.iterations_fine = False

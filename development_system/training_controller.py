@@ -29,6 +29,6 @@ class TrainingController:
         # Calibrate
         loss_curve = self.parent.neural_network.calibrate(test_set)
         # Build Report
-        self.view.build_report(self.parent.service_flag, loss_curve)
+        self.view.build_report(loss_curve)
         # Read User Input (iterations decision)
         self.parent.iterations_fine = self.view.read_user_input(self.parent.service_flag)
