@@ -25,7 +25,7 @@ class NeuralNetwork:
         le = LabelEncoder()
         df["label"] = le.fit_transform(df["label"])
         print(f"[NeuralNetwork] Data loaded correctly and labeled encoded.")
-        return df.drop(columns=["label", "id"]), df["label"]
+        return df.drop(columns=["label", "uuid"]), df["label"]
 
     def set_avg_hyper_params(self, hidden_layer_size_range, hidden_neuron_per_layer_range):
         self.hidden_layer_size = (hidden_layer_size_range.min + hidden_layer_size_range.max) / 2
