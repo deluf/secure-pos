@@ -1,6 +1,6 @@
 {
-    "minimumNumberOfSessions": 10,
-    "targetSessionsPerClass": 33,
+    "minimumNumberOfSessions": 150,
+    "targetSessionsPerClass": 50,
     "balancingTolerance": 0.2,
     "trainSplitPercentage": 0.7,
     "validationSplitPercentage": 0.2,
