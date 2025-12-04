@@ -3,6 +3,7 @@ Provides functionalities for visualizing the data balancing report as a bar char
 """
 
 import os
+import random
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,3 +57,34 @@ class DataBalancingView:
         output_file = f"{self.output_dir}/data_balancing_report.png"
         plt.savefig(output_file)
         print(f"[DataBalancingView] Data balancing report saved to '{output_file}'")
+
+    @staticmethod
+    def read_user_input(service_flag: bool) -> None | dict[AttackRiskLevel, int]:
+        """
+        Reads (or randomly chooses) user input to determine data balance and,
+        if necessary, the additional sessions required for each attack risk level.
+        If data is balanced returns None, else returns the number of additional
+        sessions requested
+        """
+        # Is data balanced?
+        if service_flag:
+            data_balanced = random.choice([True, False])
+            print(f"[DataBalancingView] Simulated user decision: data "
+                  f"{"not " if not data_balanced else " "}balanced")
+        else:
+            result = input("[DataBalancingView] Is data balanced? (Y/n): \n > ")
+            data_balanced = result.lower() == "y"
+        if data_balanced:
+            return None
+
+        # If data is not balanced, how many additional sessions do we need?
+        requested_sessions = {level: 0 for level in AttackRiskLevel}
+        if service_flag:
+            for level in AttackRiskLevel:
+                requested_sessions[level] = random.randint(0, 50)
+            print(f"[DataBalancingView] Simulated user decision: requested sessions {requested_sessions}")
+        else:
+            for level in AttackRiskLevel:
+                result = input(f"[Controller] How many additional sessions for {level}? \n > ")
+                requested_sessions[level] = int(result)
+        return requested_sessions

@@ -3,11 +3,14 @@ Provides functionalities for visualizing the data coverage report as a radar cha
 """
 
 import os
+import random
 
 import plotly.graph_objects as go
 import plotly.express as px
 
 from segregation_system.data_coverage_model import DataCoverageModel
+from shared.attack_risk_level import AttackRiskLevel
+
 
 class DataCoverageView:
     """
@@ -56,3 +59,36 @@ class DataCoverageView:
         output_file = f"{self.output_dir}/data_coverage_report.png"
         fig.write_image(output_file)
         print(f"[DataCoverageView] Data coverage report saved to '{output_file}'")
+
+    @staticmethod
+    def read_user_input(service_flag: bool) -> None | dict[AttackRiskLevel, int]:
+        """
+        Reads (or randomly chooses) user input to determine feature distribution and,
+        if necessary, the additional sessions required.
+        If features are well distributed returns None, else returns the number of
+        additional sessions requested
+        """
+        # Are features well distributed?
+        if service_flag:
+            features_well_distributed = random.choice([True, False])  # TODO Probabilities
+            print(
+                f"[DataCoverageView] Simulated user decision: "
+                f"features {"not " if not features_well_distributed else " "}distributed")
+        else:
+            result = input("[DataCoverageView] Are features well distributed? (Y/n): \n > ")
+            features_well_distributed = result.lower() == "y"
+        if features_well_distributed:
+            return None
+
+        # If features are not well distributed, how many additional sessions do we need?
+        requested_sessions = {level: 0 for level in AttackRiskLevel}
+        if service_flag:
+            result = random.randint(0, 50)
+            print(f"[DataCoverageView] Simulated user decision: "
+                  f"requested {result} additional sessions")
+        else:
+            result = int(input("[DataCoverageView] How many additional sessions? \n > "))
+        # Evenly distribute the requested sessions
+        for level in AttackRiskLevel:
+            requested_sessions[level] = result // 3
+        return requested_sessions

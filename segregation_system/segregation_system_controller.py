@@ -127,54 +127,15 @@ class SegregationSystemController:
             sessions=sessions
         )
         self.data_balancing_view.build_report(model)
-
-        # TODO: In a read_user_input() function?
-
-        # Is data balanced?
-        if self.service_flag:
-            data_balanced = random.choice([True, False])
-            print(f"[Controller] Simulated user decision: data {"not " if not data_balanced else " "}balanced")
-        else:
-            result = input("[Controller] Is data balanced? (Y/n): \n > ")
-            data_balanced = result.lower() == "y"
-
-        # If data is not balanced, how many additional sessions do we need?
-        if not data_balanced:
-            requested_sessions = {level: 0 for level in AttackRiskLevel}
-            if self.service_flag:
-                for level in AttackRiskLevel:
-                    target_sessions = int(self.configuration["targetSessionsPerClass"])
-                    requested_sessions[level] = random.randint(0, target_sessions // 2)
-                print(f"[Controller] Simulated user decision: requested sessions {requested_sessions}")
-            else:
-                for level in AttackRiskLevel:
-                    result = input(f"[Controller] How many additional sessions for {level}? \n > ")
-                    requested_sessions[level] = int(result)
+        requested_sessions = self.data_balancing_view.read_user_input(self.service_flag)
+        if requested_sessions:
             self.run(requested_sessions)
             return
 
         model = DataCoverageModel(sessions)
         self.data_coverage_view.build_report(model)
-
-        # Are features well distributed?
-        if self.service_flag:
-            features_well_distributed = random.choice([True, False]) # TODO Probabilities
-            print(f"[Controller] Simulated user decision: features {"not " if not features_well_distributed else " "}distributed")
-        else:
-            result = input("[Controller] Are features well distributed? (Y/n): \n > ")
-            features_well_distributed = result.lower() == "y"
-
-        # If features are not well distributed, how many additional sessions do we need?
-        if not features_well_distributed:
-            if self.service_flag:
-                target_sessions = int(self.configuration["targetSessionsPerClass"]) # FIXME: REPEATED CODE
-                result = randint(1, target_sessions // 2)
-                print(f"[Controller] Simulated user decision: requested {result} additional sessions")
-            else:
-                result = int(input("[Controller] How many additional sessions? \n > "))
-            for level in AttackRiskLevel:
-                # Evenly distribute the requested sessions
-                requested_sessions[level] = result // 3
+        requested_sessions = self.data_coverage_view.read_user_input(self.service_flag)
+        if requested_sessions:
             self.run(requested_sessions)
             return
 
