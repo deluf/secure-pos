@@ -2,10 +2,6 @@
 The controller module for the segregation system
 """
 
-import random
-import time
-from random import randint
-from dataclasses import asdict
 from typing import Final
 
 from shared.loader import load_and_validate_json_file
@@ -19,29 +15,6 @@ from segregation_system.data_coverage_model import DataCoverageModel
 from segregation_system.data_coverage_view import DataCoverageView
 from segregation_system.data_splitter import DataSplitter
 from segregation_system.prepared_sessions_db import PreparedSessionsDB, PreparedSession
-
-# FIXME: Simulate the preparation system sending prepared sessions #
-from faker import Faker
-fake = Faker()
-import uuid
-def SIMULATE_INCOMING_PREPARED_SESSIONS(self):
-    dummy_session = PreparedSession(
-        uuid.uuid4().hex,
-        round(random.uniform(1, 60), 2),
-        round(random.uniform(50, 500), 2),
-        float(fake.longitude()),
-        float(fake.latitude()),
-        randint(0, 2 ** 32 - 1),
-        randint(0, 2 ** 32 - 1),
-        random.choice(list(AttackRiskLevel))
-    )
-    self.io.send_json(
-        Address("127.0.0.1", 8003),
-        "/prepared-session",
-        asdict(dummy_session)
-    )
-    time.sleep(1)
-# FIXME: End simulation #
 
 class SegregationSystemController:
     """
@@ -96,8 +69,7 @@ class SegregationSystemController:
         )
 
         self.io = SystemsIO(
-            # FIXME: Remove the /calibration-sets test endpoint
-            [Endpoint("/prepared-session", "schemas/prepared_session.schema.json"), Endpoint("/calibration-sets")],
+            [Endpoint("/prepared-session", "schemas/prepared_session.schema.json")],
             self.configuration["addresses"]["segregationSystem"]["port"],
         )
         self.sessions_db = PreparedSessionsDB()
@@ -125,13 +97,6 @@ class SegregationSystemController:
             else:
                 if received_sessions >= minimum_number_of_sessions:
                     break
-
-            print(f"[DEBUG] Requested sessions: {requested_sessions}")
-            print(f"[DEBUG] Received sessions: {received_sessions}")
-
-            # FIXME: Simulate the preparation system sending prepared sessions #
-            SIMULATE_INCOMING_PREPARED_SESSIONS(self)
-            # FIXME: End simulation #
 
             prepared_session_data = self.io.receive("/prepared-session")
             prepared_session = PreparedSession(**prepared_session_data)
@@ -166,8 +131,7 @@ class SegregationSystemController:
             return
 
         splits = self.splitter.split(sessions)
-            # FIXME: Actually use the dev system address
-        self.io.send_files(Address("127.0.0.1", 8003), "/calibration-sets", splits)
+        self.io.send_files(self.development_system_address, "/calibration-sets", splits)
         self.sessions_db.delete_all()
         self.splitter.delete(splits)
 

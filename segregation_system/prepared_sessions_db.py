@@ -13,13 +13,13 @@ class PreparedSession:
     Represents a collection of features ready to be used as inputs to a classifier
     """
     uuid: str
-    mad_timestamps: float
-    mad_amounts: float
-    median_longitude: float
-    median_latitude: float
-    median_source_ip: int
-    median_destination_ip: int
     label: AttackRiskLevel
+    mad_timestamps: float | None = None
+    mad_amounts: float | None = None
+    median_longitude: float | None = None
+    median_latitude: float | None = None
+    median_source_ip: int | None = None
+    median_destination_ip: int | None = None
 
 class PreparedSessionsDB:
     """
