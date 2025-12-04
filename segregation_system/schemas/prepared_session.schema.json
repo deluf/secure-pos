@@ -19,12 +19,6 @@
     },
     "required": [
         "uuid",
-        "mad_timestamps",
-        "mad_amounts",
-        "median_longitude",
-        "median_latitude",
-        "median_source_ip",
-        "median_destination_ip",
         "label"
     ],
     "additionalProperties": false
