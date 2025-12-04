@@ -14,7 +14,7 @@ class CalibrationView:
         plt.title('Training Loss Curve')
         plt.legend()
         os.makedirs("plot", exist_ok=True)
-        plt.savefig("plot/calibration_plot.png")
+        plt.savefig("development_system/plot/calibration_plot.png")
         plt.close()
         print("--------------------------")
 

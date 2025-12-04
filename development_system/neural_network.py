@@ -10,13 +10,13 @@ class NeuralNetwork:
         self.hidden_neuron_per_layer_range = hidden_neuron_per_layer_range  # default value
         self.hidden_layer_size = 5  # default value
         self.hidden_neuron_per_layer = 100  # default value
-        self.current_layer = hidden_layer_size_range.min
-        self.current_neuron_per_layer = hidden_neuron_per_layer_range.min
+        self.current_layer = hidden_layer_size_range["min"]
+        self.current_neuron_per_layer = hidden_neuron_per_layer_range["min"]
         self.models = []
         self.models_info = []
         self.x_train, self.x_val, self.x_test = None, None, None
         self.y_train, self.y_val, self.y_test = None, None, None
-        self.features, self.labels = None, None
+        #self.features, self.labels = None, None
 
     @staticmethod
     def load_data_from_csv(csv):
