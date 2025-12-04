@@ -6,7 +6,6 @@ class ValidationView:
     def build_report(models_info):
         top_five = sorted(models_info, key=lambda x: x["validation_error"])[:5]
         print("\n--- VALIDATION REPORT ---")
-        #print("ID - Validation Error - Training Error - Difference - # of Layers - # of Neurons - Network Complexity")
         for model in top_five:
             print(model)
         print("-------------------------")

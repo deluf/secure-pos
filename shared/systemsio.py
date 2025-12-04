@@ -22,6 +22,7 @@ from shared.address import Address
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.WARNING)
 
+
 class Endpoint:
     """
     Represents an API endpoint with a specific URL and an optional schema.
@@ -42,6 +43,7 @@ class Endpoint:
         """
         self.url = url
         self.schema = schema
+
 
 class SystemsIO:
     """

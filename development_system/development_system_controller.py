@@ -4,22 +4,33 @@ from development_system.training_controller import TrainingController
 from development_system.validation_controller import ValidationController
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
+from shared.address import Address
 
 
 class DevelopmentSystemController:
     CONFIG_PATH = "development_system/input/development_system_configuration.json"
-    #TRAIN_PATH = "files/train_set.csv"
-    #VALIDATION_PATH = "files/validation_set.csv"
-    #TEST_PATH = "files/test_set.csv"
+    CONFIG_SCHEMA_PATH = "development_system/schema/configuration.schema.json"
+    SHARED_CONFIG_PATH = "shared/json/shared_config.json"
+    SHARED_CONFIG_SCHEMA_PATH = "shared/json/shared_config.schema.json"
+    PROCESS_ENDPOINT = "/calibration-sets"
 
     def __init__(self):
         self.config = load_and_validate_json_file(self.CONFIG_PATH,
-                                                  "development_system/schema/configuration.schema.json")
-        self.io = SystemsIO([Endpoint("/calibration-sets")], port=self.config["port"])
+                                                  self.CONFIG_SCHEMA_PATH)
+        self.shared_config = load_and_validate_json_file(self.SHARED_CONFIG_PATH,
+                                                         self.SHARED_CONFIG_SCHEMA_PATH)
+        self.service_flag = self.shared_config["serviceFlag"]
+        prep_cfg = self.shared_config["addresses"]["developmentSystem"]
+        self.io = SystemsIO([Endpoint(self.PROCESS_ENDPOINT)],
+                            port=int(prep_cfg["port"]),
+                            host=prep_cfg["ip"])
+        self.classification_address = Address(
+            self.shared_config["addresses"]["classificationSystem"]["ip"],
+            int(self.shared_config["addresses"]["classificationSystem"]["port"])
+        )
         self.neural_network = NeuralNetwork(self.config["hidden_layer_size_range"],
                                             self.config["hidden_neuron_per_layer_range"])
         self.neural_network.number_iterations = 0
-        self.service_flag = False
         self.valid_classifier_exists = False
         self.iterations_fine = False
         self.valid_classifier_id = None
@@ -28,10 +39,9 @@ class DevelopmentSystemController:
         self.validation_ctrl = ValidationController(self)
         self.test_ctrl = TestController(self)
 
-    def run(self, flag=False):
-        self.service_flag = flag
+    def run(self):
         # Receive Calibration Set
-        files = self.io.receive("/calibration-sets")
+        files = self.io.receive(self.PROCESS_ENDPOINT)
         train_set = next((f for f in files if "train_set" in f), None)
         validation_set = next((f for f in files if "validation_set" in f), None)
         test_set = next((f for f in files if "test_set" in f), None)
@@ -62,7 +72,7 @@ class DevelopmentSystemController:
 
     def reset(self):
         self.__init__()
-        self.run(self.service_flag)
+        self.run()
 
 
 if __name__ == "__main__":

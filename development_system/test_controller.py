@@ -1,7 +1,6 @@
 from development_system.test_view import TestView
 import json
 from joblib import dump
-from shared.address import Address
 from shared.systemsio import SystemsIO
 
 
@@ -24,8 +23,8 @@ class TestController:
             # Create and Send Classifier
             model = self.parent.neural_network.models[self.parent.valid_classifier_id]
             dump(model, "classifier/classifier.joblib")
-            address = Address(**self.parent.config["classificationSystemAddress"])
-            SystemsIO.send_files(address, "api/classifier", ["development_system/classifier/classifier.joblib"])
+            address = self.parent.classification_address
+            SystemsIO.send_files(address, "/api/classifier", ["development_system/classifier/classifier.joblib"])
             print("[Test] Classifier sent")
         else:
             # Reconfigure hyper params ranges
