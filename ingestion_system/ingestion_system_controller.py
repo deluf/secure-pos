@@ -10,7 +10,7 @@ from shared.address import Address
 
 class IngestionSystemController:
     LOCAL_CONFIG_PATH = "ingestion_system/ingestion_system_configuration.json"
-    SHARED_CONFIG_PATH = "shared/shared_config.json"
+    SHARED_CONFIG_PATH = "shared/json/shared_config.json"
     RECORD_SCHEMA = "ingestion_system/record.schema.json"
     LOCAL_CONFIG_SCHEMA = "ingestion_system/config.schema.json"
     SHARED_CONFIG_SCHEMA = "shared/json/shared_config.schema.json"

@@ -30,7 +30,7 @@ class IngestionSystemController:
 
     def run(self):
         model = None
-        if self.is_production:
+        if not self.is_production:
             filename = self.io.receive("/api/classifier")[0]
             model = self.flow.deploy(filename)
             print(f"Model loaded from: {filename}")
