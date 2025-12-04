@@ -6,8 +6,8 @@ from shared.address import Address
 import joblib
 
 
-class IngestionSystemController:
-    SHARED_CONFIG_PATH = "shared/shared_config.json"
+class ClassificationSystemController:
+    SHARED_CONFIG_PATH = "shared/json/shared_config.json"
     SHARED_CONFIG_SCHEMA = "shared/json/shared_config.schema.json"
     PREPARED_SESSION_SCHEMA = "classification_system/prepared_session.schema.json"
 
@@ -53,3 +53,8 @@ class IngestionSystemController:
             self.io.send_json(self.evaluation_system_address, "/api/label", data)
 
         print(f"CLIENT_SIDE SYSTEM: {out_label}")
+
+
+if __name__ == "__main__":
+    controller = ClassificationSystemController()
+    controller.run()
