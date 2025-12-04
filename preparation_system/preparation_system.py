@@ -49,7 +49,7 @@ class PreparationSystem:
 			f"Development phase: {self.config['developmentPhase']}"
 		)
 
-		while self.shared_config["serviceFlag"]:
+		while True:
 			data = self.io.receive(self.PROCESS_ENDPOINT)
 			if data is None:
 				continue
@@ -69,18 +69,21 @@ class PreparationSystem:
 			features = self.extractor.extract_features(session)
 			print(f"[PreparationSystem] Extracted features for {session.uuid}: {features}")
 
-			if self.config["developmentPhase"]:
-				target = self.segregation_address
-				endpoint = "/prepared-session"
-			else:
+			if self.shared_config["systemPhase"]["productionPhase"]:
 				target = self.classification_address
 				endpoint = "/features"
+			else:
+				target = self.segregation_address
+				endpoint = "/prepared-session"
 
 			print(f"[PreparationSystem] Sending prepared data to {target} ({endpoint})...")
 			try:
 				SystemsIO.send_json(target, endpoint, features)
 			except requests_exceptions.RequestException as exc:
 				print(f"[PreparationSystem] Failed to send prepared data: {exc}")
+
+			if self.shared_config["serviceFlag"]:
+				break
 
 
 if __name__ == "__main__":

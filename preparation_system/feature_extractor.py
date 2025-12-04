@@ -56,25 +56,25 @@ class FeatureExtractor:
 		source_ips = list(session.source_ip)
 		dest_ips = list(session.dest_ip)
 
-		if "meanAbsoluteDeviationTransactionTimestamps" in self.extracted_features:
-			result["meanAbsoluteDeviationTransactionTimestamps"] = self._mad(timestamps)
+		if "mad_timestamps" in self.extracted_features:
+			result["mad_timestamps"] = self._mad(timestamps)
 
-		if "meanAbsoluteDeviationTransactionAmounts" in self.extracted_features:
-			result["meanAbsoluteDeviationTransactionAmounts"] = self._mad(amounts)
+		if "mad_amounts" in self.extracted_features:
+			result["mad_amounts"] = self._mad(amounts)
 
-		if "medianLongitude" in self.extracted_features:
-			result["medianLongitude"] = float(median(longitudes)) if longitudes else 0.0
+		if "median_longitude" in self.extracted_features:
+			result["median_longitude"] = float(median(longitudes)) if longitudes else 0.0
 
-		if "medianLatitude" in self.extracted_features:
-			result["medianLatitude"] = float(median(latitudes)) if latitudes else 0.0
+		if "median_latitude" in self.extracted_features:
+			result["median_latitude"] = float(median(latitudes)) if latitudes else 0.0
 
-		if "medianSourceIP" in self.extracted_features:
+		if "median_source_ip" in self.extracted_features:
 			ip_ints = [self._ip_to_int(ip) for ip in source_ips]
-			result["medianSourceIP"] = int(median(ip_ints)) if ip_ints else 0
+			result["median_source_ip"] = int(median(ip_ints)) if ip_ints else 0
 
-		if "medianDestinationIP" in self.extracted_features:
+		if "median_destination_ip" in self.extracted_features:
 			ip_ints = [self._ip_to_int(ip) for ip in dest_ips]
-			result["medianDestinationIP"] = int(median(ip_ints)) if ip_ints else 0
+			result["median_destination_ip"] = int(median(ip_ints)) if ip_ints else 0
 
 		return result
 

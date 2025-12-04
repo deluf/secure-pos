@@ -2,11 +2,9 @@
     "developmentPhase": false,
     "maxTransactionsAmount": 1000,
     "extractedFeatures": [
-        "meanAbsoluteDeviationTransactionTimestamps",
-        "meanAbsoluteDeviationTransactionAmounts",
-        "medianLongitude",
-        "medianLatitude",
-        "medianSourceIP",
-        "medianDestinationIP"
+        "mad_timestamps",
+        "mad_amounts",
+        "median_source_ip",
+        "median_destination_ip"
     ]
 }
