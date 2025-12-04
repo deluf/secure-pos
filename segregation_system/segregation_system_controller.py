@@ -1,10 +1,12 @@
 """
-The controller module for the segregation system.
+The controller module for the segregation system
 """
+
 import random
 import time
 from random import randint
 from dataclasses import asdict
+from typing import Final
 
 from shared.loader import load_and_validate_json_file
 from shared.systemsio import SystemsIO, Endpoint
@@ -21,9 +23,10 @@ from segregation_system.prepared_sessions_db import PreparedSessionsDB, Prepared
 # Simulate the preparation system sending prepared sessions #
 from faker import Faker
 fake = Faker()
-def SIMULATE_INCOMING_PREPARED_SESSIONS(self, received_sessions):
+import uuid
+def SIMULATE_INCOMING_PREPARED_SESSIONS(self):
     dummy_session = PreparedSession(
-        f"{received_sessions}",
+        uuid.uuid4().hex,
         round(random.uniform(1, 60), 2),
         round(random.uniform(50, 500), 2),
         float(fake.longitude()),
@@ -33,7 +36,7 @@ def SIMULATE_INCOMING_PREPARED_SESSIONS(self, received_sessions):
         random.choice(list(AttackRiskLevel))
     )
     self.io.send_json(
-        Address("127.0.0.1", 3000),
+        Address("127.0.0.1", 8003),
         "/prepared-session",
         asdict(dummy_session)
     )
@@ -45,43 +48,76 @@ class SegregationSystemController:
     ...
     """
 
-    def __init__(self):
+    OUTPUT_DIR: Final[str] = "output"
+
+    def __init__(self) -> None:
+        """
+        ...
+        """
         self.configuration = load_and_validate_json_file(
-            "configuration.json", "schemas/configuration.schema.json")
+            "configuration.json",
+            "schemas/configuration.schema.json"
+        )
+        self.configuration |= load_and_validate_json_file(
+            "../shared/json/shared_config.json",
+            "../shared/json/shared_config.schema.json"
+        )
+
+        self.service_flag = bool(self.configuration["serviceFlag"])
+        self.development_system_address = Address(
+            self.configuration["addresses"]["developmentSystem"]["ip"],
+            self.configuration["addresses"]["developmentSystem"]["port"]
+        )
+
         self.io = SystemsIO(
             # FIXME: Remove the /calibration-sets test endpoint
             [Endpoint("/prepared-session", "schemas/prepared_session.schema.json"), Endpoint("/calibration-sets")],
-            self.configuration["port"]
+            self.configuration["addresses"]["segregationSystem"]["port"],
         )
         self.sessions_db = PreparedSessionsDB()
         self.splitter = DataSplitter(
             self.configuration["trainSplitPercentage"],
             self.configuration["testSplitPercentage"],
-            self.configuration["validationSplitPercentage"]
+            self.configuration["validationSplitPercentage"],
+            self.OUTPUT_DIR
         )
-        self.service_flag = bool(self.configuration["serviceFlag"])
-        self.development_system_address = Address(
-            self.configuration["developmentSystemAddress"]["ip"],
-            self.configuration["developmentSystemAddress"]["port"]
-        )
-        # FIXME: Sync the configuration (+ schema) with the actual used parameters
+        self.data_balancing_view = DataBalancingView(self.OUTPUT_DIR)
+        self.data_coverage_view = DataCoverageView(self.OUTPUT_DIR)
 
-    def run(self):
+    def run(self, requested_sessions: dict[AttackRiskLevel, int] = None) -> None:
         """
         ...
         """
-        received_sessions = 0
+        received_sessions = self.sessions_db.count()
+        print(f"[Controller] Initially loaded {received_sessions} sessions from the database")
         minimum_number_of_sessions = int(self.configuration["minimumNumberOfSessions"])
-        while received_sessions < minimum_number_of_sessions:
+        while True:
+            # Exit conditions check
+            if requested_sessions:
+                if sum(requested_sessions.values()) <= 0:
+                    break
+            else:
+                if received_sessions >= minimum_number_of_sessions:
+                    break
+
+            print(f"[DEBUG] Requested sessions: {requested_sessions}")
+            print(f"[DEBUG] Received sessions: {received_sessions}")
 
             # Simulate the preparation system sending prepared sessions #
-            SIMULATE_INCOMING_PREPARED_SESSIONS(self, received_sessions) # NO RECORDS
+            SIMULATE_INCOMING_PREPARED_SESSIONS(self)
             # End simulation #
 
             prepared_session_data = self.io.receive("/prepared-session")
+            prepared_session = PreparedSession(**prepared_session_data)
 
-            self.sessions_db.store(PreparedSession(**prepared_session_data))
-            received_sessions += 1
+            if requested_sessions:
+                if requested_sessions.get(prepared_session.label, 0) <= 0:
+                    # Ignore the session, the user does not need it
+                    continue
+                requested_sessions[prepared_session.label] -= 1
+            else:
+                received_sessions += 1
+            self.sessions_db.store(prepared_session)
 
         sessions = self.sessions_db.get_all()
 
@@ -90,46 +126,61 @@ class SegregationSystemController:
             target_sessions_per_class=self.configuration["targetSessionsPerClass"],
             sessions=sessions
         )
-        DataBalancingView().build_chart(model)
+        self.data_balancing_view.build_report(model)
+
+        # TODO: In a read_user_input() function?
 
         # Is data balanced?
-        if not self.service_flag:
-            result = input("[Controller] Is data balanced? (Y/n): \n > ")
-            data_balanced = result.lower() == "y"
-        else:
+        if self.service_flag:
             data_balanced = random.choice([True, False])
             print(f"[Controller] Simulated user decision: data {"not " if not data_balanced else " "}balanced")
+        else:
+            result = input("[Controller] Is data balanced? (Y/n): \n > ")
+            data_balanced = result.lower() == "y"
 
         # If data is not balanced, how many additional sessions do we need?
         if not data_balanced:
-            if not self.service_flag:
-                pass
+            requested_sessions = {level: 0 for level in AttackRiskLevel}
+            if self.service_flag:
+                for level in AttackRiskLevel:
+                    target_sessions = int(self.configuration["targetSessionsPerClass"])
+                    requested_sessions[level] = random.randint(0, target_sessions // 2)
+                print(f"[Controller] Simulated user decision: requested sessions {requested_sessions}")
             else:
-                pass
-            self.run()
+                for level in AttackRiskLevel:
+                    result = input(f"[Controller] How many additional sessions for {level}? \n > ")
+                    requested_sessions[level] = int(result)
+            self.run(requested_sessions)
+            return
 
         model = DataCoverageModel(sessions)
-        DataCoverageView().build_chart(model)
+        self.data_coverage_view.build_report(model)
 
         # Are features well distributed?
-        if not self.service_flag:
+        if self.service_flag:
+            features_well_distributed = random.choice([True, False]) # TODO Probabilities
+            print(f"[Controller] Simulated user decision: features {"not " if not features_well_distributed else " "}distributed")
+        else:
             result = input("[Controller] Are features well distributed? (Y/n): \n > ")
             features_well_distributed = result.lower() == "y"
-        else:
-            features_well_distributed = random.choice([True, False])
-            print(f"[Controller] Simulated user decision: features {"not " if not features_well_distributed else " "}distributed")
 
         # If features are not well distributed, how many additional sessions do we need?
         if not features_well_distributed:
-            if not self.service_flag:
-                pass
+            if self.service_flag:
+                target_sessions = int(self.configuration["targetSessionsPerClass"]) # FIXME: REPEATED CODE
+                result = randint(1, target_sessions // 2)
+                print(f"[Controller] Simulated user decision: requested {result} additional sessions")
             else:
-                pass
-            self.run()
+                result = int(input("[Controller] How many additional sessions? \n > "))
+            for level in AttackRiskLevel:
+                # Evenly distribute the requested sessions
+                requested_sessions[level] = result // 3
+            self.run(requested_sessions)
+            return
 
         splits = self.splitter.split(sessions)
         # FIXME: Actually use the dev system address
-        self.io.send_files(Address("127.0.0.1", 3000), "/calibration-sets", splits)
+        self.io.send_files(Address("127.0.0.1", 8003), "/calibration-sets", splits)
         self.sessions_db.delete_all()
         self.splitter.delete(splits)
 

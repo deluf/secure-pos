@@ -1,5 +1,5 @@
 {
-    "serviceFlag": true,
+    "serviceFlag": false,
     "systemPhase": {
         "productionPhase": true,
         "evaluationPhaseWindow": 100,

@@ -1,6 +1,7 @@
 """
 Provides functionalities for visualizing the data balancing report as a bar chart
 """
+
 import os
 
 import matplotlib.pyplot as plt
@@ -12,16 +13,17 @@ from shared.attack_risk_level import AttackRiskLevel
 class DataBalancingView:
     """
     Represents the view for the data balancing chart
+
+    :ivar output_dir: The directory where the chart will be saved
+    :type output_dir: str
     """
-    @staticmethod
-    def build_chart(model: DataBalancingModel) -> None:
+    def __init__(self, output_dir: str) -> None:
+        self.output_dir = output_dir
+
+    def build_report(self, model: DataBalancingModel) -> None:
         """
         Generate a bar chart that provides a data balancing report based on session counts,
         target sessions per class, and a specified tolerance for balancing
-
-        :param model: The counts for various attack risk levels
-        :type model: DataBalancingModel
-        :return: None
         """
         labels = [AttackRiskLevel.NORMAL, AttackRiskLevel.MODERATE, AttackRiskLevel.HIGH]
         sessions = [
@@ -50,6 +52,7 @@ class DataBalancingView:
         ax.set_title("Data balancing report")
         ax.legend()
 
-        os.makedirs("output", exist_ok=True)
-        plt.savefig("output/data_balancing_report.png")
-        print("[DataBalancingView] Data balancing report saved to 'output/data_balancing_report.png'")
+        os.makedirs(self.output_dir, exist_ok=True)
+        output_file = f"{self.output_dir}/data_balancing_report.png"
+        plt.savefig(output_file)
+        print(f"[DataBalancingView] Data balancing report saved to '{output_file}'")

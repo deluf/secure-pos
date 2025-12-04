@@ -1,6 +1,7 @@
 """
 Provides functionalities for visualizing the data coverage report as a radar chart
 """
+
 import os
 
 import plotly.graph_objects as go
@@ -11,15 +12,16 @@ from segregation_system.data_coverage_model import DataCoverageModel
 class DataCoverageView:
     """
     Represents the view for the data coverage chart
+
+    :ivar output_dir: The directory where the chart will be saved
+    :type output_dir: str
     """
-    @staticmethod
-    def build_chart(model: DataCoverageModel):
+    def __init__(self, output_dir: str) -> None:
+        self.output_dir = output_dir
+
+    def build_report(self, model: DataCoverageModel) -> None:
         """
         Builds a radar chart based on the provided data coverage model
-
-        :param model: The normalized features and samples to be visualized
-        :type model: DataCoverageModel
-        :return: None
         """
         flat_features = []
         flat_samples = []
@@ -50,6 +52,7 @@ class DataCoverageView:
             title="Data coverage report"
         )
 
-        os.makedirs("output", exist_ok=True)
-        fig.write_image("output/data_coverage_report.png")
-        print("[DataCoverageView] Data coverage report saved to 'output/data_coverage_report.png'")
+        os.makedirs(self.output_dir, exist_ok=True)
+        output_file = f"{self.output_dir}/data_coverage_report.png"
+        fig.write_image(output_file)
+        print(f"[DataCoverageView] Data coverage report saved to '{output_file}'")
