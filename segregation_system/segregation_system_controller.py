@@ -20,7 +20,7 @@ from segregation_system.data_coverage_view import DataCoverageView
 from segregation_system.data_splitter import DataSplitter
 from segregation_system.prepared_sessions_db import PreparedSessionsDB, PreparedSession
 
-# Simulate the preparation system sending prepared sessions #
+# FIXME: Simulate the preparation system sending prepared sessions #
 from faker import Faker
 fake = Faker()
 import uuid
@@ -41,19 +41,45 @@ def SIMULATE_INCOMING_PREPARED_SESSIONS(self):
         asdict(dummy_session)
     )
     time.sleep(1)
-# End simulation #
+# FIXME: End simulation #
 
 class SegregationSystemController:
     """
-    ...
+    Manages the segregation system, handling the configuration, preparation,
+    and processing of sessions, including data balancing and coverage analysis
+
+    :ivar OUTPUT_DIR: Directory where the output files such as splits, reports,
+        or logs will be stored
+    :type OUTPUT_DIR: str
+    :ivar configuration: Parsed and validated JSON configuration dict merged
+        from the main system configuration with shared settings
+    :type configuration: dict
+    :ivar service_flag: Determines if the service should operate in a specific
+        mode based on configuration settings
+    :type service_flag: bool
+    :ivar development_system_address: Address object representing the development
+        system's IP and port
+    :type development_system_address: Address
+    :ivar io: SystemsIO instance managing communication with endpoints such as
+        receiving prepared sessions and sending calibration sets
+    :type io: SystemsIO
+    :ivar sessions_db: Database object managing storage and retrieval of prepared
+        sessions
+    :type sessions_db: PreparedSessionsDB
+    :ivar splitter: DataSplitter object responsible for splitting sessions into
+        training, testing, and validation datasets
+    :type splitter: DataSplitter
+    :ivar data_balancing_view: View object generating and handling reports
+        regarding data balancing operations
+    :type data_balancing_view: DataBalancingView
+    :ivar data_coverage_view: View object generating and handling reports
+        relating to data coverage analysis
+    :type data_coverage_view: DataCoverageView
     """
 
     OUTPUT_DIR: Final[str] = "output"
 
     def __init__(self) -> None:
-        """
-        ...
-        """
         self.configuration = load_and_validate_json_file(
             "configuration.json",
             "schemas/configuration.schema.json"
@@ -86,7 +112,7 @@ class SegregationSystemController:
 
     def run(self, requested_sessions: dict[AttackRiskLevel, int] = None) -> None:
         """
-        ...
+        Executes the main workflow for managing session preparation and processing
         """
         received_sessions = self.sessions_db.count()
         print(f"[Controller] Initially loaded {received_sessions} sessions from the database")
@@ -103,9 +129,9 @@ class SegregationSystemController:
             print(f"[DEBUG] Requested sessions: {requested_sessions}")
             print(f"[DEBUG] Received sessions: {received_sessions}")
 
-            # Simulate the preparation system sending prepared sessions #
+            # FIXME: Simulate the preparation system sending prepared sessions #
             SIMULATE_INCOMING_PREPARED_SESSIONS(self)
-            # End simulation #
+            # FIXME: End simulation #
 
             prepared_session_data = self.io.receive("/prepared-session")
             prepared_session = PreparedSession(**prepared_session_data)
@@ -140,11 +166,12 @@ class SegregationSystemController:
             return
 
         splits = self.splitter.split(sessions)
-        # FIXME: Actually use the dev system address
+            # FIXME: Actually use the dev system address
         self.io.send_files(Address("127.0.0.1", 8003), "/calibration-sets", splits)
         self.sessions_db.delete_all()
         self.splitter.delete(splits)
 
 if __name__ == "__main__":
     controller = SegregationSystemController()
-    controller.run()
+    while True:
+        controller.run()
