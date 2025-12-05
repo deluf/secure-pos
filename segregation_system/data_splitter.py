@@ -2,12 +2,11 @@
 Module for splitting a dataset of prepared sessions into training, validation, and test subsets
 """
 
-import csv
 import os
 import uuid
-from dataclasses import fields, astuple
 from pathlib import Path
 
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from segregation_system.prepared_sessions_db import PreparedSession
@@ -42,9 +41,16 @@ class DataSplitter:
         Splits a list of prepared sessions into training, validation, and test sets.
         The splits are then saved into separate CSV files
         """
+        df = pd.DataFrame([vars(s) for s in sessions])
+
+        initial_cols = len(df.columns)
+        df.dropna(axis=1, how='any', inplace=True)
+        non_na_cols = len(df.columns)
+        print(f"[DataSplitter] Dropped {initial_cols - non_na_cols} columns with missing values")
+
         # First Split: Separate Train from the rest (Validation + Test)
-        train_set, temp_set = train_test_split(
-            sessions,
+        train_df, temp_df = train_test_split(
+            df,
             train_size=self.train_split_percentage,
             shuffle=True
         )
@@ -53,8 +59,8 @@ class DataSplitter:
         # We must recalculate the split ratio relative to the remaining data
         relative_test_size = (self.test_split_percentage /
             (self.validation_split_percentage + self.test_split_percentage))
-        validation_set, test_set = train_test_split(
-            temp_set,
+        validation_df, test_df = train_test_split(
+            temp_df,
             test_size=relative_test_size,
             shuffle=True
         )
@@ -62,10 +68,16 @@ class DataSplitter:
         output_files = []
         splits_id = uuid.uuid4() # Avoids overwriting previous splits
         os.makedirs(self.output_dir, exist_ok=True)
-        for split_name, split_data in zip(
-                ["train", "validation", "test"], [train_set, validation_set, test_set]):
+
+        datasets = {
+            "train": train_df,
+            "validation": validation_df,
+            "test": test_df
+        }
+        for split_name, split_df in datasets.items():
             path = f"{self.output_dir}/{split_name}_set.{splits_id}.csv"
-            self._save_to_csv(path, split_data)
+            split_df.to_csv(path, index=False, encoding="utf-8")
+            print(f"[DataSplitter] Saved {len(split_df)} sessions to '{path}'")
             output_files.append(path)
         return output_files
 
@@ -77,15 +89,3 @@ class DataSplitter:
         for path in paths:
             Path(path).unlink(missing_ok=True)
             print(f"[DataSplitter] Deleted '{path}'")
-
-    @staticmethod
-    def _save_to_csv(path: str, data: list[PreparedSession]) -> None:
-        """
-        Saves a list of prepared sessions to a CSV file
-        """
-        with open(path, mode="w", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            # Write headers based on the Dataclass fields
-            writer.writerow([field.name for field in fields(PreparedSession)])
-            writer.writerows(astuple(item) for item in data)
-        print(f"[DataSplitter] Saved {len(data)} sessions to '{path}'")
