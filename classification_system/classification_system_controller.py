@@ -9,7 +9,11 @@ import joblib
 class ClassificationSystemController:
     SHARED_CONFIG_PATH = "shared/json/shared_config.json"
     SHARED_CONFIG_SCHEMA = "shared/json/shared_config.schema.json"
-    PREPARED_SESSION_SCHEMA = "classification_system/prepared_session.schema.json"
+    PREPARED_SESSION_SCHEMA = "classification_system/json/prepared_session.schema.json"
+
+    INPUT_CLASSIFIER_ENDPOINT = "/classifier"
+    INPUT_PREPARED_SESSION_ENDPOINT = "/prepared_session"
+    EVALUATION_ENDPOINT = "/predicted-label"
 
     def __init__(self):
         self.shared_config = load_and_validate_json_file(self.SHARED_CONFIG_PATH, self.SHARED_CONFIG_SCHEMA)
@@ -17,10 +21,11 @@ class ClassificationSystemController:
         self.development_system_address = Address(**self.shared_config['addresses']['developmentSystem'])
         self.preparation_system_address = Address(**self.shared_config['addresses']['preparationSystem'])
         self.evaluation_system_address = Address(**self.shared_config['addresses']['evaluationSystem'])
-        self.io = SystemsIO(
-            [Endpoint("/api/classifier"), Endpoint("/api/prepared-session", self.PREPARED_SESSION_SCHEMA)],
-            port=self.classification_system_address.port
-        )
+        endpoints = [
+            Endpoint(self.INPUT_CLASSIFIER_ENDPOINT),
+            Endpoint(self.INPUT_PREPARED_SESSION_ENDPOINT, self.PREPARED_SESSION_SCHEMA)
+        ]
+        self.io = SystemsIO(endpoints, port=self.classification_system_address.port)
         self.is_production = self.shared_config['systemPhase']['productionPhase']
         self.flow = FlowClassification()
         self.service_flag = self.shared_config['serviceFlag']
@@ -31,7 +36,7 @@ class ClassificationSystemController:
     def run(self):
         model = None
         if not self.is_production:
-            filename = self.io.receive("/api/classifier")[0]
+            filename = self.io.receive(self.INPUT_CLASSIFIER_ENDPOINT)[0]
             model = self.flow.deploy(filename)
             print(f"Model loaded from: {filename}")
             print(f"Model type: {type(model).__name__}")
@@ -42,7 +47,7 @@ class ClassificationSystemController:
         if not self.service_flag:
             model = joblib.load("classification_system/state/saved_model.joblib")
 
-        prepared_session = self.io.receive("/api/prepared-session")
+        prepared_session = self.io.receive(self.INPUT_PREPARED_SESSION_ENDPOINT)
         out_label = self.flow.classify(model, prepared_session)
 
         if self.counter.register_message():
@@ -50,7 +55,7 @@ class ClassificationSystemController:
                 'uuid': prepared_session['uuid'],
                 'label': out_label.__str__()
             }
-            self.io.send_json(self.evaluation_system_address, "/api/label", data)
+            self.io.send_json(self.evaluation_system_address, self.EVALUATION_ENDPOINT, data)
 
         print(f"CLIENT_SIDE SYSTEM: {out_label}")
 
