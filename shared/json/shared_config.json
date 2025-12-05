@@ -15,7 +15,7 @@
             "port": 8002
         },
         "segregationSystem": {
-            "ip": "192.168.102.67",
+            "ip": "127.0.0.1",
             "port": 8003
         },
         "developmentSystem": {

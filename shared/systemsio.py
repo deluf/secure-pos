@@ -5,14 +5,12 @@ A server-side module for managing JSON and file-based IO operations
 import json
 import os
 import logging
-
 import threading
 import queue
 from contextlib import ExitStack
 from typing import Any
 
 import requests
-
 from flask import Flask, request, jsonify, Response
 from jsonschema import validate, ValidationError
 
@@ -21,7 +19,6 @@ from shared.address import Address
 # Disable Flask's default logging
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.WARNING)
-
 
 class Endpoint:
     """
@@ -33,14 +30,6 @@ class Endpoint:
     :type schema: str | None
     """
     def __init__(self, url: str, schema: str | None = None):
-        """
-        Initializes the class attributes
-
-        :param url: The URL string of the endpoint. Must start with '/'
-        :type url: str
-        :param schema: The optional JSON validation schema for the endpoint
-        :type schema: str | None
-        """
         self.url = url
         self.schema = schema
 
@@ -63,13 +52,6 @@ class SystemsIO:
     """
 
     def __init__(self, endpoints: list[Endpoint], port: int, host: str = "0.0.0.0"):
-        """
-        Initializes and configures a Flask-based server
-
-        :param endpoints: List of endpoints to be registered
-        :param port: Port number on which the Flask server will listen to
-        :param host: (Optional) Host address for the Flask server
-        """
         self.app = Flask(__name__)
         self.port = port
         self.host = host
@@ -109,8 +91,6 @@ class SystemsIO:
     def _handle_incoming_request(self) -> tuple[Response, int]:
         """
         Internal Flask route handler for ALL registered endpoints
-
-        :return: A JSON response indicating the success or failure of the request
         """
         if request.is_json:
             path = request.path
@@ -144,15 +124,6 @@ class SystemsIO:
     def send_json(target: Address, endpoint: str, data: dict[str, Any]) -> None:
         """
         Sends a JSON payload to a specified target system
-
-        :param target: The target address
-        :type target: Address
-        :param endpoint: A specified endpoint path. Must start with '/'
-        :type endpoint: str
-        :param data: The JSON-serializable content to be sent
-        :type data: Any
-        :return: None
-        :raises requests.exceptions.RequestException: If the transmission fails
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
         requests.post(url, json=data, timeout=None).raise_for_status()
@@ -162,15 +133,6 @@ class SystemsIO:
     def send_files(target: Address, endpoint: str, file_paths: list[str]) -> None:
         """
         Sends one or more files to a specified endpoint on a target address using HTTP POST
-
-        :param target: An object containing the target's IP address and port information
-        :type target: Address
-        :param endpoint: The API endpoint where the files will be sent
-        :type endpoint: str
-        :param file_paths: A list of file system paths to the files that will be sent
-        :type file_paths: list[str]
-        :return: None
-        :raises requests.HTTPError: If the HTTP request fails
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
         # ExitStack allows us to manage a dynamic number of context managers (open files)
@@ -189,12 +151,6 @@ class SystemsIO:
         Retrieve data from the specified endpoint queue.
         Data can be either a JSON object or the path of a file.
         This method blocks indefinitely until data is available
-
-        :param endpoint: The endpoint identifier. Must start with '/'
-        :type endpoint: str
-        :return: The next available item from the associated endpoint queue
-        :rtype: dict[str, Any] | str
-        :raises ValueError: If the provided endpoint is not registered
         """
         if endpoint not in self.queues:
             raise ValueError(f"Endpoint '{endpoint}' is not registered. "

@@ -31,7 +31,7 @@ class DataSplitter:
         validation_split_percentage: float,
         test_split_percentage: float,
         output_dir: str
-    ) -> None:
+    ):
         self.train_split_percentage = train_split_percentage
         self.validation_split_percentage = validation_split_percentage
         self.test_split_percentage = test_split_percentage

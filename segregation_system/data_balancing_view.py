@@ -18,7 +18,7 @@ class DataBalancingView:
     :ivar output_dir: The directory where the chart will be saved
     :type output_dir: str
     """
-    def __init__(self, output_dir: str) -> None:
+    def __init__(self, output_dir: str):
         self.output_dir = output_dir
 
     def build_report(self, model: DataBalancingModel) -> None:

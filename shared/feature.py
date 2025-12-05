@@ -1,10 +1,12 @@
-
 from enum import Enum
 
-class Feature(Enum):
-    MAD_TIMESTAMPS = 1
-    MAD_AMOUNTS = 2
-    MEDIAN_LONGITUDE = 3
-    MEDIAN_LATITUDE = 4
-    MEDIAN_SOURCE_IP = 5
-    MEDIAN_DESTINATION_IP = 6
+class Feature(str, Enum):
+    """
+    Enum representing all the possible classifier inputs
+    """
+    MAD_TIMESTAMPS = "mad_timestamps"
+    MAD_AMOUNTS = "mad_amounts"
+    MEDIAN_LONGITUDE = "median_longitude"
+    MEDIAN_LATITUDE = "median_latitude"
+    MEDIAN_SOURCE_IP = "median_source_ip"
+    MEDIAN_DESTINATION_IP = "median_destination_ip"

@@ -2,7 +2,7 @@ from enum import Enum
 
 class AttackRiskLevel(str, Enum):
     """
-    Enum for different risk levels.
+    Enum for the classifier label
     """
     NORMAL = "normal"
     MODERATE = "moderate"

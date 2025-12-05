@@ -24,7 +24,7 @@ class DataBalancingModel:
         balancing_tolerance: float,
         target_sessions_per_class: int,
         sessions: list[PreparedSession]
-    ) -> None:
+    ):
         self.balancing_tolerance = balancing_tolerance
         self.target_sessions_per_class = target_sessions_per_class
         counts = Counter(session.label for session in sessions)

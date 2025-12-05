@@ -29,7 +29,7 @@ class PreparedSessionsDB:
     :type conn: sqlite3.Connection
     """
 
-    def __init__(self, database_name: str = "prepared_sessions.db") -> None:
+    def __init__(self, database_name: str = "prepared_sessions.db"):
         self.conn = sqlite3.connect(database_name)
         self._create_schema()
 

@@ -52,7 +52,7 @@ class SegregationSystemController:
 
     OUTPUT_DIR: Final[str] = "output"
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.configuration = load_and_validate_json_file(
             "configuration.json",
             "schemas/configuration.schema.json"
