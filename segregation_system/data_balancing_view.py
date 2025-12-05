@@ -34,7 +34,6 @@ class DataBalancingView:
         ]
         colors = ["green", "orange", "red"]
 
-        target = model.target_sessions_per_class
         tolerance = model.balancing_tolerance
         mean = float(np.mean(sessions))
 
@@ -42,7 +41,6 @@ class DataBalancingView:
 
         ax.bar(labels, sessions, color=colors)
 
-        ax.axhline(y=target, color="blue", linewidth=2, label="Target")
         ax.axhline(y=mean, color="black", linewidth=2, label="Mean")
         ax.axhline(y=mean + mean * tolerance, color="black", linestyle="--",
             label=f"Mean +/- tolerance ({tolerance})")

@@ -114,7 +114,6 @@ class SegregationSystemController:
 
         model = DataBalancingModel(
             balancing_tolerance=self.configuration["balancingTolerance"],
-            target_sessions_per_class=self.configuration["targetSessionsPerClass"],
             sessions=sessions
         )
         self.data_balancing_view.build_report(model)
