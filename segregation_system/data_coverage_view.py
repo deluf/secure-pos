@@ -70,7 +70,7 @@ class DataCoverageView:
         """
         # Are features well distributed?
         if service_flag:
-            features_well_distributed = random.choices([True, False], [0.33, 0.67])[0]
+            features_well_distributed = random.random() < 0.33
             print(
                 f"[DataCoverageView] Simulated user decision: "
                 f"features {"not " if not features_well_distributed else " "}distributed")
