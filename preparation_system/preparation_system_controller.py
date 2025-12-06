@@ -26,8 +26,7 @@ class PreparationSystem:
 		prep_cfg = self.shared_config["addresses"]["preparationSystem"]
 		self.io = SystemsIO(
 			[Endpoint(self.PROCESS_ENDPOINT, self.RAW_SESSION_SCHEMA_PATH)],
-			port=int(prep_cfg["port"]),
-			host=prep_cfg["ip"]
+			port=int(prep_cfg["port"])
 		)
 
 		self.classification_address = Address(
