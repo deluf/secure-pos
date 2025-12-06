@@ -31,7 +31,8 @@ class FlowClassification:
             value for key, value in prepared_session.items()
             if key != "uuid" and key != "label"
         ]
-        raw_result = model.predict([features])[0]
+        prediction = model.predict(features)[0]
+        raw_result = list(AttackRiskLevel)[prediction]
 
         try:
             return AttackRiskLevel(raw_result)

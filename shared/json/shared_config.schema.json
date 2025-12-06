@@ -5,7 +5,7 @@
         "systemPhase": {
             "type": "object",
             "properties": {
-                "productionPhase": {"type": "boolean"},
+                "developmentPhase": {"type": "boolean"},
                 "evaluationPhaseWindow": {"type": "integer", "minimum": 1},
                 "productionPhaseWindow": {"type": "integer", "minimum": 1}
             },

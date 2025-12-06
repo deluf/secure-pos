@@ -35,7 +35,7 @@ class DataCoverageView:
             for sample in samples:
                 flat_features.append(feature.name)
                 flat_samples.append(sample)
-                flat_colors.append(colors[feature.value % len(colors)])
+                flat_colors.append(colors[0 % len(colors)])
 
         fig = go.Figure()
 
@@ -70,7 +70,7 @@ class DataCoverageView:
         """
         # Are features well distributed?
         if service_flag:
-            features_well_distributed = random.random() < 0.33
+            features_well_distributed = random.random() < 0.9
             print(
                 f"[DataCoverageView] Simulated user decision: "
                 f"features {"not " if not features_well_distributed else " "}distributed")

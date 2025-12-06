@@ -1,33 +1,33 @@
 {
-    "serviceFlag": false,
+    "serviceFlag": true,
     "systemPhase": {
-        "productionPhase": false,
-        "evaluationPhaseWindow": 100,
-        "productionPhaseWindow": 500
+        "developmentPhase": true,
+        "evaluationPhaseWindow": 1000,
+        "productionPhaseWindow": 10
     },
     "addresses": {
         "ingestionSystem": {
-            "ip": "127.0.0.1",
+            "ip": "2.38.49.97",
             "port": 8001
         },
         "preparationSystem": {
-            "ip": "127.0.0.1",
+            "ip": "195.32.11.207",
             "port": 8002
         },
         "segregationSystem": {
-            "ip": "127.0.0.1",
+            "ip": "2.38.49.97",
             "port": 8003
         },
         "developmentSystem": {
-            "ip": "127.0.0.1",
+            "ip": "195.32.11.207",
             "port": 8004
         },
         "classificationSystem": {
-            "ip": "127.0.0.1",
+            "ip": "2.38.49.97",
             "port": 8005
         },
         "evaluationSystem": {
-            "ip": "127.0.0.1",
+            "ip": "195.32.11.207",
             "port": 8006
         }
     }

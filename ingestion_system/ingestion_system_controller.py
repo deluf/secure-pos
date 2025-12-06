@@ -1,3 +1,5 @@
+from sklearn.externals.array_api_compat.torch import minimum
+
 from shared.message_counter import PhaseMessageCounter
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
@@ -31,8 +33,8 @@ class IngestionSystemController:
         evaluation_window = self.shared_config['systemPhase']['evaluationPhaseWindow']
         production_window = self.shared_config['systemPhase']['productionPhaseWindow']
         self.counter = PhaseMessageCounter("state/ingestion_counter.json", evaluation_window, production_window)
-        self.is_production = self.shared_config['systemPhase']['productionPhase']
-        self.minimumRecords = 3 if self.is_production else 4
+        self.is_development = self.shared_config['systemPhase']['developmentPhase']
+        self.minimumRecords = 3 if not self.is_development and not self.counter.is_evaluation() else 4
 
     def run(self):
         while True:
@@ -52,17 +54,18 @@ class IngestionSystemController:
             if not self.analysis.mark_missing_samples(raw_session, self.local_config["missingSamplesThreshold"]):
                 return
 
-            if self.is_production and self.counter.register_message():
+            if not self.is_development and self.counter.register_message():
                 self.io.send_json(
                     self.evaluation_system_address,
                     self.EVALUATION_SYSTEM_ENDPOINT,
                     {"uuid": raw_session.uuid, "label": raw_session.label}
                 )
 
+            self.minimumRecords = 3 if not self.is_development and not self.counter.is_evaluation() else 4
+
             self.io.send_json(self.preparation_system_address, self.PREPARATION_SYSTEM_ENDPOINT, asdict(raw_session))
             if not self.shared_config["serviceFlag"]:
                 break
-
 
 if __name__ == "__main__":
     controller = IngestionSystemController()

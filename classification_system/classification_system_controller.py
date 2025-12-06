@@ -40,7 +40,7 @@ class ClassificationSystemController:
             Endpoint(self.INPUT_PREPARED_SESSION_ENDPOINT, self.PREPARED_SESSION_SCHEMA)
         ]
         self.io = SystemsIO(endpoints, port=self.classification_system_address.port)
-        self.is_production = self.shared_config['systemPhase']['productionPhase']
+        self.is_development = self.shared_config['systemPhase']['developmentPhase']
         self.flow = FlowClassification()
         self.service_flag = self.shared_config['serviceFlag']
         evaluation_window = self.shared_config['systemPhase']['evaluationPhaseWindow']
@@ -53,8 +53,7 @@ class ClassificationSystemController:
 
     def run(self):
         while True:
-            model = None
-            if not self.is_production:
+            if self.is_development:
                 filename = self.io.receive(self.INPUT_CLASSIFIER_ENDPOINT)[0]
                 model = self.flow.deploy(filename)
                 print(f"Model loaded from: {filename}")
@@ -63,7 +62,7 @@ class ClassificationSystemController:
                 print(f"Number of iterations trained: {model.n_iter_}")
                 if not self.service_flag:
                     return
-                break
+                continue
 
             model = joblib.load("classification_system/state/saved_model.joblib")
 
@@ -78,6 +77,7 @@ class ClassificationSystemController:
                 self.io.send_json(self.evaluation_system_address, self.EVALUATION_ENDPOINT, data)
 
             print(f"CLIENT_SIDE SYSTEM: {out_label}")
+
             if not self.service_flag:
                 break
 
