@@ -51,10 +51,10 @@ class SystemsIO:
     :type host: str
     """
 
-    def __init__(self, endpoints: list[Endpoint], port: int, host: str = "0.0.0.0"):
+    def __init__(self, endpoints: list[Endpoint], port: int):
         self.app = Flask(__name__)
         self.port = port
-        self.host = host
+        self.host = "0.0.0.0"
         self.queues: dict[str, queue.Queue] = {}
         self.schemas: dict[str, dict[str, Any]] = {}
 
