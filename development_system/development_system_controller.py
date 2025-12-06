@@ -40,40 +40,49 @@ class DevelopmentSystemController:
         self.test_ctrl = TestController(self)
 
     def run(self):
-        # Receive Calibration Set
-        files = self.io.receive(self.PROCESS_ENDPOINT)
-        train_set = next((f for f in files if "train_set" in f), None)
-        validation_set = next((f for f in files if "validation_set" in f), None)
-        test_set = next((f for f in files if "test_set" in f), None)
-        print("[System] Calibration Sets received.")
+        while True:
+            # Receive Calibration Set
+            files = self.io.receive(self.PROCESS_ENDPOINT)
+            train_set = next((f for f in files if "train_set" in f), None)
+            validation_set = next((f for f in files if "validation_set" in f), None)
+            test_set = next((f for f in files if "test_set" in f), None)
+            print("[System] Calibration Sets received.")
 
-        print("\n[System] --- DEVELOPMENT FLOW START ---")
-        # Loop: while no valid classifier
-        while not self.valid_classifier_exists:
-            self.iterations_fine = False
+            print("\n[System] --- DEVELOPMENT FLOW START ---")
+            # Loop: while no valid classifier
+            while not self.valid_classifier_exists:
+                self.iterations_fine = False
+                self.neural_network.number_iterations = 0
+
+                # 1. Training Phase
+                print("\n[System] --- TRAINING PHASE START ---")
+                # Loop: while number of iterations not fine
+                while not self.iterations_fine:
+                    self.training_ctrl.run(train_set)
+                print("\n[System] --- TRAINING PHASE END ---")
+
+                # 2. Validation Phase
+                print("\n[System] --- VALIDATION PHASE START ---")
+                self.validation_ctrl.run(train_set, validation_set)
+                print("\n[System] --- VALIDATION PHASE END ---")
+
+            # 3. Test Phase
+            print("\n[System] --- TEST PHASE START ---")
+            test_passed = self.test_ctrl.run(test_set)
+            print("\n[System] --- TEST PHASE END ---")
+            # Reset for possible re-executions
             self.neural_network.number_iterations = 0
-
-            # 1. Training Phase
-            print("\n[System] --- TRAINING PHASE START ---")
-            # Loop: while number of iterations not fine
-            while not self.iterations_fine:
-                self.training_ctrl.run(train_set)
-            print("\n[System] --- TRAINING PHASE END ---")
-
-            # 2. Validation Phase
-            print("\n[System] --- VALIDATION PHASE START ---")
-            self.validation_ctrl.run(train_set, validation_set)
-            print("\n[System] --- VALIDATION PHASE END ---")
-
-        # 3. Test Phase
-        print("\n[System] --- TEST PHASE START ---")
-        self.test_ctrl.run(test_set)
-        print("\n[System] --- TEST PHASE END ---")
-
-    def reset(self):
-        self.__init__()
-        self.run()
-
+            self.valid_classifier_exists = False
+            self.iterations_fine = False
+            self.valid_classifier_id = None
+            self.validation_ctrl.ongoing_validation = False
+            if not test_passed:
+                self.config = load_and_validate_json_file(self.CONFIG_PATH,
+                                                          self.CONFIG_SCHEMA_PATH)
+                self.neural_network = NeuralNetwork(self.config["hiddenLayerSizeRange"],
+                                                    self.config["hiddenNeuronPerLayerRange"])
+            elif not self.service_flag:
+                break
 
 if __name__ == "__main__":
     controller = DevelopmentSystemController()

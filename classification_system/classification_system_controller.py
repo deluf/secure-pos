@@ -34,30 +34,33 @@ class ClassificationSystemController:
         self.counter = PhaseMessageCounter("state/classification_counter.json", evaluation_window, production_window)
 
     def run(self):
-        model = None
-        if not self.is_production:
-            filename = self.io.receive(self.INPUT_CLASSIFIER_ENDPOINT)[0]
-            model = self.flow.deploy(filename)
-            print(f"Model loaded from: {filename}")
-            print(f"Model type: {type(model).__name__}")
-            print(f"Hidden layer sizes: {model.hidden_layer_sizes}")
-            print(f"Number of iterations trained: {model.n_iter_}")
-            return
+        while True:
+            model = None
+            if not self.is_production:
+                filename = self.io.receive(self.INPUT_CLASSIFIER_ENDPOINT)[0]
+                model = self.flow.deploy(filename)
+                print(f"Model loaded from: {filename}")
+                print(f"Model type: {type(model).__name__}")
+                print(f"Hidden layer sizes: {model.hidden_layer_sizes}")
+                print(f"Number of iterations trained: {model.n_iter_}")
+                return
 
-        if not self.service_flag:
-            model = joblib.load("classification_system/state/saved_model.joblib")
+            if not self.service_flag:
+                model = joblib.load("classification_system/state/saved_model.joblib")
 
-        prepared_session = self.io.receive(self.INPUT_PREPARED_SESSION_ENDPOINT)
-        out_label = self.flow.classify(model, prepared_session)
+            prepared_session = self.io.receive(self.INPUT_PREPARED_SESSION_ENDPOINT)
+            out_label = self.flow.classify(model, prepared_session)
 
-        if self.counter.register_message():
-            data = {
-                'uuid': prepared_session['uuid'],
-                'label': out_label.__str__()
-            }
-            self.io.send_json(self.evaluation_system_address, self.EVALUATION_ENDPOINT, data)
+            if self.counter.register_message():
+                data = {
+                    'uuid': prepared_session['uuid'],
+                    'label': out_label.__str__()
+                }
+                self.io.send_json(self.evaluation_system_address, self.EVALUATION_ENDPOINT, data)
 
-        print(f"CLIENT_SIDE SYSTEM: {out_label}")
+            print(f"CLIENT_SIDE SYSTEM: {out_label}")
+            if not self.service_flag:
+                break
 
 
 if __name__ == "__main__":

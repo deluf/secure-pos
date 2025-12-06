@@ -3,7 +3,6 @@ from development_system.validation_view import ValidationView
 
 class ValidationController:
     def __init__(self, parent):
-        super().__init__()
         self.parent = parent
         self.view = ValidationView()
         self.ongoing_validation = False

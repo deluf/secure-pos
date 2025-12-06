@@ -7,7 +7,6 @@ class TrainingController:
     ITERATION_DECISION_PATH = "development_system/input/iterations_decision.json"
 
     def __init__(self, parent):
-        super().__init__()
         self.parent = parent
         self.view = CalibrationView()
 

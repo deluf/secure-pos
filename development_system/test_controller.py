@@ -7,7 +7,6 @@ import os
 
 class TestController:
     def __init__(self, parent):
-        super().__init__()
         self.parent = parent
         self.view = TestView()
 
@@ -39,5 +38,4 @@ class TestController:
             data["hiddenNeuronPerLayerRange"] = hidden_neuron_per_layer
             with open(path, "w") as f:
                 json.dump(data, f, indent=2)
-            self.parent.reset()
         return test_passed
