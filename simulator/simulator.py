@@ -51,8 +51,8 @@ class Simulator:
         return {
             "type": "transaction_data",
             "uuid": id,
-            "timestamp": offsets,
-            "amount": amounts
+            "timestamp": offsets.tolist(),
+            "amount": amounts.tolist()
         }
 
     def _generate_location_record(self, id: str, label: AttackRiskLevel) -> dict:
@@ -87,8 +87,8 @@ class Simulator:
         return {
             "type": "location_data",
             "uuid": id,
-            "longitude": longitudes,
-            "latitude": latitudes
+            "longitude": longitudes.tolist(),
+            "latitude": latitudes.tolist()
         }
 
     def _generate_ip_record(self, id: str, label: AttackRiskLevel):
@@ -117,7 +117,7 @@ class Simulator:
         source_ips = _generate_ip_sequence(label)
         dest_ips = _generate_ip_sequence(label)
         return {
-            "type": "ip_data",
+            "type": "network_data",
             "uuid": id,
             "source_ip": source_ips,
             "dest_ip": dest_ips
@@ -139,7 +139,7 @@ class Simulator:
     def run(self, sessions: int = 1) -> None:
         while sessions > 0:
             records = self._generate_records()
-            for record in records:
+            for record in list(records):
                 self.io.send_json(self.ingestion_system_address, "/record", record)
                 print(f"[Simulator] Sent {record} record ({sessions} sessions remaining)")
                 time.sleep(0.1)

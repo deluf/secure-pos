@@ -46,7 +46,7 @@ class PreparationSystem:
 		prep_cfg = self.shared_config["addresses"]["preparationSystem"]
 		print(
 			f"[PreparationSystem] Listening on {prep_cfg['ip']}:{prep_cfg['port']}. "
-			f"Development phase: {self.config['developmentPhase']}"
+			f"Production phase: {self.shared_config["systemPhase"]["productionPhase"]}"
 		)
 
 		while True:

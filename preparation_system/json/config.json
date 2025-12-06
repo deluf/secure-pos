@@ -1,5 +1,4 @@
 {
-    "developmentPhase": false,
     "maxTransactionsAmount": 1000,
     "extractedFeatures": [
         "mad_timestamps",
