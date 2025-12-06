@@ -61,7 +61,10 @@ class ClassificationSystemController:
                 print(f"Model type: {type(model).__name__}")
                 print(f"Hidden layer sizes: {model.hidden_layer_sizes}")
                 print(f"Number of iterations trained: {model.n_iter_}")
-                return
+                if not self.service_flag:
+                    return
+                break
+
 
             if not self.service_flag:
                 model = joblib.load("classification_system/state/saved_model.joblib")
