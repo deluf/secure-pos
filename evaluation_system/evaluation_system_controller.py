@@ -130,7 +130,10 @@ class EvaluationSystemController:
         if self.service_flag:
             # Automatic Mode: Decision is simulated without user intervention
             print("[Evaluation System] Service Flag active. Proceeding with automated decision...")
-            decision = random.choice(['accept', 'reject'])
+            # Weighted choice: 6/7 chance for 'accept', 1/7 for 'reject' (assuming 6 times out of 7 the evaluation is fine)
+            weighted_choices = ['accept'] * 6 + ['reject'] * 1
+            decision = random.choice(weighted_choices)
+
             print(f"[Evaluation System] Automated decision: {decision.upper()}")
         else:
             # Manual Mode: Wait for user input via terminal
