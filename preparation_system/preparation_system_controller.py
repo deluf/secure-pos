@@ -7,8 +7,7 @@ from shared.loader import load_and_validate_json_file
 from preparation_system.data_corrector import DataCorrector
 from preparation_system.feature_extractor import FeatureExtractor
 
-
-class PreparationSystem:
+class PreparationSystemController:
 	CONFIG_PATH = "preparation_system/json/config.json"
 	CONFIG_SCHEMA_PATH = "preparation_system/json/config_schema.json"
 	SHARED_CONFIG_PATH = "shared/json/shared_config.json"
@@ -81,11 +80,9 @@ class PreparationSystem:
 			except requests_exceptions.RequestException as exc:
 				print(f"[PreparationSystem] Failed to send prepared data: {exc}")
 
-			if self.shared_config["serviceFlag"]:
+			if not self.shared_config["serviceFlag"]:
 				break
 
-
 if __name__ == "__main__":
-	system = PreparationSystem()
-	system.run()
-
+    controller = PreparationSystemController()
+    controller.run()

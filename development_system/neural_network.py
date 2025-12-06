@@ -82,7 +82,9 @@ class NeuralNetwork:
         for c_id, model in enumerate(self.models):
             self.models_info[c_id]["validation_error"] = 1 - model.score(self.x_val, self.y_val)
             val_err, train_err = self.models_info[c_id]["validation_error"], self.models_info[c_id]["training_error"]
-            self.models_info[c_id]["difference"] = (val_err - train_err) / val_err
+            difference = (val_err - train_err) / val_err if val_err > train_err \
+                else (train_err - val_err) / train_err
+            self.models_info[c_id]["difference"] = difference
 
     def test(self, classifier_id, path):
         self.x_test, self.y_test = self.load_data_from_csv(path)

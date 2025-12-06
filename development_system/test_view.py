@@ -5,7 +5,8 @@ class TestView:
     @staticmethod
     def build_report(test_error, model_info, generalization_tolerance):
         val_error = model_info["validation_error"]
-        difference = (val_error - test_error) / val_error
+        difference = (val_error - test_error) / val_error if val_error > test_error \
+            else (test_error - val_error) / test_error
         print("\n--- TEST REPORT ---")
         print(f"Winner Network ID: {model_info['id']}")
         print(f"Validation Error: {val_error}")

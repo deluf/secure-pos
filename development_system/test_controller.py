@@ -25,7 +25,7 @@ class TestController:
             os.makedirs("development_system/classifier", exist_ok=True)
             dump(model, "development_system/classifier/classifier.joblib")
             address = self.parent.classification_address
-            SystemsIO.send_files(address, "/api/classifier", ["development_system/classifier/classifier.joblib"])
+            SystemsIO.send_files(address, "/classifier", ["development_system/classifier/classifier.joblib"])
             print("[Test] Classifier sent")
         else:
             # Reconfigure hyper params ranges
