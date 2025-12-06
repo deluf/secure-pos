@@ -15,12 +15,12 @@ class Simulator:
 
     def __init__(self):
         self.io = SystemsIO(
-            [Endpoint("/timestamp", "schemas/timestamp.schema.json")],
+            [Endpoint("/timestamp", "simulator/schemas/timestamp.schema.json")],
             8000
         )
         configuration = load_and_validate_json_file(
-            "../shared/json/shared_config.json",
-            "../shared/json/shared_config.schema.json"
+            "shared/json/shared_config.json",
+            "shared/json/shared_config.schema.json"
         )
         self.ingestion_system_address = Address(
             configuration["addresses"]["ingestionSystem"]["ip"],
@@ -142,9 +142,8 @@ class Simulator:
             for record in list(records):
                 self.io.send_json(self.ingestion_system_address, "/record", record)
                 print(f"[Simulator] Sent {record} record ({sessions} sessions remaining)")
-                time.sleep(0.1)
             sessions -= 1
 
 if __name__ == "__main__":
     simulator = Simulator()
-    simulator.run(1)
+    simulator.run(150)
