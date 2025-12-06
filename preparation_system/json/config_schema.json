@@ -1,7 +1,6 @@
 {
     "type": "object",
     "properties": {
-        "developmentPhase": {"type": "boolean"},
         "maxTransactionsAmount": {"type": "number", "minimum": 0},
         "extractedFeatures": {
             "type": "array",
@@ -10,7 +9,6 @@
         }
     },
     "required": [
-        "developmentPhase",
         "maxTransactionsAmount",
         "extractedFeatures"
     ],
