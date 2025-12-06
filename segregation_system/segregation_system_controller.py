@@ -50,16 +50,16 @@ class SegregationSystemController:
     :type data_coverage_view: DataCoverageView
     """
 
-    OUTPUT_DIR: Final[str] = "output"
+    OUTPUT_DIR: Final[str] = "segregation_system/output"
 
     def __init__(self):
         self.configuration = load_and_validate_json_file(
-            "configuration.json",
-            "schemas/configuration.schema.json"
+            "segregation_system/configuration.json",
+            "segregation_system/schemas/configuration.schema.json"
         )
         self.configuration |= load_and_validate_json_file(
-            "../shared/json/shared_config.json",
-            "../shared/json/shared_config.schema.json"
+            "shared/json/shared_config.json",
+            "shared/json/shared_config.schema.json"
         )
 
         self.service_flag = bool(self.configuration["serviceFlag"])
@@ -69,7 +69,7 @@ class SegregationSystemController:
         )
 
         self.io = SystemsIO(
-            [Endpoint("/prepared-session", "schemas/prepared_session.schema.json")],
+            [Endpoint("/prepared-session", "segregation_system/schemas/prepared_session.schema.json")],
             self.configuration["addresses"]["segregationSystem"]["port"],
         )
         self.sessions_db = PreparedSessionsDB()

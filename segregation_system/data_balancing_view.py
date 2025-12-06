@@ -8,7 +8,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
-from data_balancing_model import DataBalancingModel
+from segregation_system.data_balancing_model import DataBalancingModel
 from shared.attack_risk_level import AttackRiskLevel
 
 class DataBalancingView:
