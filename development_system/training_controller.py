@@ -20,7 +20,7 @@ class TrainingController:
         if iterations is None or iterations == 0:
             self.set_average_params()
         # Read number of iterations
-        if self.parent.service_flag:
+        if not self.parent.service_flag:
             iterations = input(">> Insert number of iterations (eg. 100): ")
         else:
             iterations = 50 + randint(0, 250)
