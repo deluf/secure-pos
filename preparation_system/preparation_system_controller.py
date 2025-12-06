@@ -4,8 +4,8 @@ from shared.systemsio import SystemsIO, Endpoint
 from shared.address import Address
 from shared.loader import load_and_validate_json_file
 
-from preparation_system.data_corrector import DataCorrector
-from preparation_system.feature_extractor import FeatureExtractor
+from preparation_system_controller.data_corrector import DataCorrector
+from preparation_system_controller.feature_extractor import FeatureExtractor
 
 
 class PreparationSystem:
