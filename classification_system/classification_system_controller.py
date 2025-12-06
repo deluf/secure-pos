@@ -65,9 +65,7 @@ class ClassificationSystemController:
                     return
                 break
 
-
-            if not self.service_flag:
-                model = joblib.load("classification_system/state/saved_model.joblib")
+            model = joblib.load("classification_system/state/saved_model.joblib")
 
             prepared_session = self.io.receive(self.INPUT_PREPARED_SESSION_ENDPOINT)
             out_label = self.flow.classify(model, prepared_session)
