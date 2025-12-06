@@ -31,6 +31,8 @@ class IngestionSystemController:
         evaluation_window = self.shared_config['systemPhase']['evaluationPhaseWindow']
         production_window = self.shared_config['systemPhase']['productionPhaseWindow']
         self.counter = PhaseMessageCounter("state/ingestion_counter.json", evaluation_window, production_window)
+        self.is_production = self.shared_config['systemPhase']['productionPhase']
+        self.minimumRecords = 3 if self.is_production else 4
 
     def run(self):
         while True:
@@ -43,14 +45,14 @@ class IngestionSystemController:
                     continue
 
                 self.db.store(json_record)
-                raw_session = self.db.get_session(uuid, self.local_config['minimumRecords'])
+                raw_session = self.db.get_session(uuid, self.minimumRecords)
 
             self.db.remove(raw_session.uuid)
 
             if not self.analysis.mark_missing_samples(raw_session, self.local_config["missingSamplesThreshold"]):
                 return
 
-            if self.counter.register_message():
+            if self.is_production and self.counter.register_message():
                 self.io.send_json(
                     self.evaluation_system_address,
                     self.EVALUATION_SYSTEM_ENDPOINT,

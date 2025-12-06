@@ -1,10 +1,13 @@
+"""
+Main File of the Classification System package
+"""
+
 from classification_system.flow_classification import FlowClassification
 from shared.message_counter import PhaseMessageCounter
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from shared.address import Address
 import joblib
-
 
 class ClassificationSystemController:
     SHARED_CONFIG_PATH = "shared/json/shared_config.json"
@@ -16,11 +19,22 @@ class ClassificationSystemController:
     EVALUATION_ENDPOINT = "/predicted-label"
 
     def __init__(self):
-        self.shared_config = load_and_validate_json_file(self.SHARED_CONFIG_PATH, self.SHARED_CONFIG_SCHEMA)
-        self.classification_system_address = Address(**self.shared_config['addresses']['classificationSystem'])
-        self.development_system_address = Address(**self.shared_config['addresses']['developmentSystem'])
-        self.preparation_system_address = Address(**self.shared_config['addresses']['preparationSystem'])
-        self.evaluation_system_address = Address(**self.shared_config['addresses']['evaluationSystem'])
+        self.shared_config = load_and_validate_json_file(
+            self.SHARED_CONFIG_PATH,
+            self.SHARED_CONFIG_SCHEMA
+        )
+        self.classification_system_address = Address(
+            **self.shared_config['addresses']['classificationSystem']
+        )
+        self.development_system_address = Address(
+            **self.shared_config['addresses']['developmentSystem']
+        )
+        self.preparation_system_address = Address(
+            **self.shared_config['addresses']['preparationSystem']
+        )
+        self.evaluation_system_address = Address(
+            **self.shared_config['addresses']['evaluationSystem']
+        )
         endpoints = [
             Endpoint(self.INPUT_CLASSIFIER_ENDPOINT),
             Endpoint(self.INPUT_PREPARED_SESSION_ENDPOINT, self.PREPARED_SESSION_SCHEMA)
@@ -31,7 +45,11 @@ class ClassificationSystemController:
         self.service_flag = self.shared_config['serviceFlag']
         evaluation_window = self.shared_config['systemPhase']['evaluationPhaseWindow']
         production_window = self.shared_config['systemPhase']['productionPhaseWindow']
-        self.counter = PhaseMessageCounter("state/classification_counter.json", evaluation_window, production_window)
+        self.counter = PhaseMessageCounter(
+            "state/classification_counter.json",
+            evaluation_window,
+            production_window
+        )
 
     def run(self):
         while True:

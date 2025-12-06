@@ -1,4 +1,3 @@
 {
-  "minimumRecords": 3,
   "missingSamplesThreshold": 0.99
 }
