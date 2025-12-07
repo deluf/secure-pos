@@ -1,6 +1,6 @@
+import time
 import uuid
 from typing import Final
-import time
 import random
 
 import numpy as np
@@ -141,9 +141,14 @@ class Simulator:
             records = self._generate_records()
             for record in list(records):
                 self.io.send_json(self.ingestion_system_address, "/record", record)
-                print(f"[Simulator] Sent {record} record ({sessions} sessions remaining)")
+                #print(f"[Simulator] Sent {record} record ({sessions} sessions remaining)")
             sessions -= 1
 
 if __name__ == "__main__":
     simulator = Simulator()
-    simulator.run(150)
+    initial_timestamp = int(time.time() * 1000)
+    simulator.run(1000)
+    while True:
+        final_json = simulator.io.receive(Endpoint("/timestamp", "simulator/schemas/timestamp.schema.json"))
+        final_timestamp = int(final_json["timestamp"])
+        print(f"[Simulator] Received classifier timestamp: {final_timestamp - initial_timestamp}")
