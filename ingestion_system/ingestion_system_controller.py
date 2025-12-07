@@ -1,5 +1,3 @@
-from sklearn.externals.array_api_compat.torch import minimum
-
 from shared.message_counter import PhaseMessageCounter
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
