@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+import pandas as pd
 from sklearn.neural_network import MLPClassifier
 import joblib
 
@@ -27,12 +28,16 @@ class FlowClassification:
         :param prepared_session: A PreparedSession dict.
         :return: The corresponding AttackRiskLevel.
         """
-        features = [
-            value for key, value in prepared_session.items()
-            if key != "uuid" and key != "label"
-        ]
-        prediction = model.predict(features)[0]
-        raw_result = list(AttackRiskLevel)[prediction]
+
+        expected_features = model.feature_names_in_
+
+        df = pd.DataFrame([prepared_session])
+
+        x_pred = df[expected_features]
+
+        prediction = model.predict(x_pred)[0]
+
+        raw_result = list(AttackRiskLevel)[int(prediction)]
 
         try:
             return AttackRiskLevel(raw_result)

@@ -15,7 +15,7 @@ class ClassificationSystemController:
     PREPARED_SESSION_SCHEMA = "classification_system/json/prepared_session.schema.json"
 
     INPUT_CLASSIFIER_ENDPOINT = "/classifier"
-    INPUT_PREPARED_SESSION_ENDPOINT = "/prepared_session"
+    INPUT_PREPARED_SESSION_ENDPOINT = "/prepared-session"
     EVALUATION_ENDPOINT = "/predicted-label"
 
     def __init__(self):
@@ -56,6 +56,7 @@ class ClassificationSystemController:
             if self.is_development:
                 filename = self.io.receive(self.INPUT_CLASSIFIER_ENDPOINT)[0]
                 model = self.flow.deploy(filename)
+                print()
                 print(f"Model loaded from: {filename}")
                 print(f"Model type: {type(model).__name__}")
                 print(f"Hidden layer sizes: {model.hidden_layer_sizes}")
@@ -72,11 +73,11 @@ class ClassificationSystemController:
             if self.counter.register_message():
                 data = {
                     'uuid': prepared_session['uuid'],
-                    'label': out_label.__str__()
+                    'label': out_label.value
                 }
                 self.io.send_json(self.evaluation_system_address, self.EVALUATION_ENDPOINT, data)
 
-            print(f"CLIENT_SIDE SYSTEM: {out_label}")
+            print(f"[TO CLIENT_SIDE SYSTEM] label: {out_label.value}")
 
             if not self.service_flag:
                 break

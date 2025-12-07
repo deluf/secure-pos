@@ -13,7 +13,7 @@ class RawSessionDB:
         'label': 'label'
     }
 
-    def __init__(self, db_path: str = "raw_sessions.db"):
+    def __init__(self, db_path: str = "ingestion_system/raw_sessions.db"):
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self._create_table()
 

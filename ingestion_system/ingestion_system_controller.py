@@ -43,12 +43,11 @@ class IngestionSystemController:
             while raw_session is None:
                 json_record = self.io.receive(self.INPUT_RECORD_ENDPOINT)
 
-                uuid = json_record.get('uuid')
-                if not uuid:
+                if json_record['type'] == 'label' and self.minimumRecords == 3:
                     continue
 
                 self.db.store(json_record)
-                raw_session = self.db.get_session(uuid, self.minimumRecords)
+                raw_session = self.db.get_session(json_record['uuid'], self.minimumRecords)
 
             self.db.remove(raw_session.uuid)
 

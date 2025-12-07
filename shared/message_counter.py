@@ -32,7 +32,7 @@ class PhaseMessageCounter:
         return bool(state["is_evaluation"])
 
     def register_message(self) -> bool:
-        """Increment the counter and return whether the system is currently in the evaluation phase"""
+        """Decrement the counter and return whether the system is currently in the evaluation phase"""
         state = load_and_validate_json_file(
             str(self.state_path),
             self.STATE_SCHEMA_PATH
