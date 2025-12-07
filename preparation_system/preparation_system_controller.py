@@ -73,7 +73,7 @@ class PreparationSystemController:
                 endpoint = "/prepared-session"
             else:
                 target = self.classification_address
-                endpoint = "/features"
+                endpoint = "/prepared-session"
 
             print(f"[PreparationSystem] Sending prepared data to {target} ({endpoint})...")
             try:

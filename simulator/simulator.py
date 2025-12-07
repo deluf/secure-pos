@@ -1,6 +1,5 @@
 import uuid
 from typing import Final
-import time
 import random
 
 import numpy as np
@@ -146,4 +145,4 @@ class Simulator:
 
 if __name__ == "__main__":
     simulator = Simulator()
-    simulator.run(150)
+    simulator.run(1)
