@@ -10,7 +10,7 @@
                 "productionPhaseWindow": {"type": "integer", "minimum": 1}
             },
             "required": [
-                "productionPhase",
+                "developmentPhase",
                 "evaluationPhaseWindow",
                 "productionPhaseWindow"
             ],
