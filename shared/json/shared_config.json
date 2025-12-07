@@ -1,11 +1,15 @@
 {
     "serviceFlag": true,
     "systemPhase": {
-        "developmentPhase": false,
+        "developmentPhase": true,
         "evaluationPhaseWindow": 1000,
         "productionPhaseWindow": 10
     },
     "addresses": {
+        "simulatorSystem": {
+          "ip": "195.32.11.207",
+            "port": 8000
+        },
         "ingestionSystem": {
             "ip": "2.38.49.97",
             "port": 8001

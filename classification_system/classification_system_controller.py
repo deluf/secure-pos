@@ -1,6 +1,7 @@
 """
 Main File of the Classification System package
 """
+import time
 
 from classification_system.flow_classification import FlowClassification
 from shared.message_counter import PhaseMessageCounter
@@ -8,6 +9,7 @@ from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from shared.address import Address
 import joblib
+
 
 class ClassificationSystemController:
     SHARED_CONFIG_PATH = "shared/json/shared_config.json"
@@ -17,6 +19,7 @@ class ClassificationSystemController:
     INPUT_CLASSIFIER_ENDPOINT = "/classifier"
     INPUT_PREPARED_SESSION_ENDPOINT = "/prepared-session"
     EVALUATION_ENDPOINT = "/predicted-label"
+    TIMESTAMP_ENDPOINT = "/timestamp"
 
     def __init__(self):
         self.shared_config = load_and_validate_json_file(
@@ -39,6 +42,9 @@ class ClassificationSystemController:
             Endpoint(self.INPUT_CLASSIFIER_ENDPOINT),
             Endpoint(self.INPUT_PREPARED_SESSION_ENDPOINT, self.PREPARED_SESSION_SCHEMA)
         ]
+        self.simulator_system_address = Address(
+            **self.shared_config['addresses']['simulatorSystem']
+        )
         self.io = SystemsIO(endpoints, port=self.classification_system_address.port)
         self.is_development = self.shared_config['systemPhase']['developmentPhase']
         self.flow = FlowClassification()
@@ -61,6 +67,11 @@ class ClassificationSystemController:
                 print(f"Model type: {type(model).__name__}")
                 print(f"Hidden layer sizes: {model.hidden_layer_sizes}")
                 print(f"Number of iterations trained: {model.n_iter_}")
+                self.io.send_json(
+                    self.simulator_system_address,
+                    self.TIMESTAMP_ENDPOINT,
+                    {'timestamp': int(time.time() * 1000)}
+                )
                 if not self.service_flag:
                     return
                 continue
