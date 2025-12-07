@@ -20,6 +20,9 @@ class IngestionSystemController:
     EVALUATION_SYSTEM_ENDPOINT = "/actual-label"
     PREPARATION_SYSTEM_ENDPOINT = "/process"
 
+    def _get_min_records(self) -> int:
+        return 3 if not self.is_development and not self.counter.is_evaluation() else 4
+
     def __init__(self):
         self.local_config = load_and_validate_json_file(self.LOCAL_CONFIG_PATH, self.LOCAL_CONFIG_SCHEMA)
         self.shared_config = load_and_validate_json_file(self.SHARED_CONFIG_PATH, self.SHARED_CONFIG_SCHEMA)
@@ -34,7 +37,7 @@ class IngestionSystemController:
         production_window = self.shared_config['systemPhase']['productionPhaseWindow']
         self.counter = PhaseMessageCounter("state/ingestion_counter.json", evaluation_window, production_window)
         self.is_development = self.shared_config['systemPhase']['developmentPhase']
-        self.minimumRecords = 3 if not self.is_development and not self.counter.is_evaluation() else 4
+        self.minimumRecords = self._get_min_records()
 
     def run(self):
         while True:
@@ -61,11 +64,13 @@ class IngestionSystemController:
                     {"uuid": raw_session.uuid, "label": raw_session.label}
                 )
 
-            self.minimumRecords = 3 if not self.is_development and not self.counter.is_evaluation() else 4
+            self.minimumRecords = self._get_min_records()
 
             self.io.send_json(self.preparation_system_address, self.PREPARATION_SYSTEM_ENDPOINT, asdict(raw_session))
+
             if not self.shared_config["serviceFlag"]:
                 break
+
 
 if __name__ == "__main__":
     controller = IngestionSystemController()
