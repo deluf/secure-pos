@@ -147,67 +147,27 @@ class Simulator:
                 #print(f"[Simulator] Sent {record} record ({sessions} sessions remaining)")
             sessions -= 1
 
+
 if __name__ == "__main__":
     simulator = Simulator()
-    initial_timestamp = int(time.time() * 1000)
     CSV_FILENAME = "latency_log.csv"
-    N_SENDERS = 2
-
-    # --- Thread 1: Generator (N Instances) ---
-    def generator_job(thread_id):
-        print(f"[Generator-{thread_id}] Thread started.")
-        while True:
-            simulator.run(100000000)
-
-    # --- Thread 2: Receiver (Single Consumer Writing to CSV) ---
-    def receiver_job():
-        print(f"[Receiver] Thread started. Logging to {CSV_FILENAME}")
-        
-        # Initialize file with headers if it doesn't exist
-        if not os.path.exists(CSV_FILENAME):
-            with open(CSV_FILENAME, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(["received_timestamp", "latency_ms"])
-
-        # Keep file open for appending
+    if not os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["n_messages", "total_duration_ms"])
+    for n in range(0, 1001):
+        start_ts = int(time.time() * 1000)
+        simulator.run(n)
+        for _ in range(n):
+            simulator.io.receive("/timestamp")
+        end_ts = int(time.time() * 1000)
+        diff_ms = end_ts - start_ts
         with open(CSV_FILENAME, 'a', newline='') as f:
             writer = csv.writer(f)
-            
-            while True:
-                # Block until message received (Consumes from all senders)
-                final_json = simulator.io.receive("/timestamp")
-                
-                # Calculate latency
-                rec_ts = int(final_json["timestamp"])
-                latency = rec_ts - initial_timestamp
-                
-                # Write to CSV
-                writer.writerow([rec_ts, latency])
-                
-                # Flush buffer
-                f.flush() 
-                
-                print(f"[Receiver] Logged -> TS: {rec_ts}, Latency: {latency}ms")
-
-    # --- Start Threads ---
-    
-    # 1. Start the Receiver first
-    t_rec = threading.Thread(target=receiver_job, daemon=True)
-    t_rec.start()
-
-    # 2. Start N Generator Threads
-    sender_threads = []
-    for i in range(N_SENDERS):
-        t_gen = threading.Thread(target=generator_job, args=(i,), daemon=True)
-        sender_threads.append(t_gen)
-        t_gen.start()
-
-    print(f"[Main] System running with {N_SENDERS} senders and 1 receiver.")
-
-    # --- Keep Main Alive ---
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\n[Main] Stopping simulator...")
-
+            writer.writerow([n, diff_ms])
+        print(f"[Iteration N={n}] Processed {n} messages in {diff_ms}ms. Sleeping 10s...")
+        try:
+            time.sleep(10)
+        except KeyboardInterrupt:
+            print("\n[Main] Stopping simulator...")
+            break
