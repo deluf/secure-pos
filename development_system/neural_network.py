@@ -48,6 +48,7 @@ class NeuralNetwork:
                 ongoing_validation = True
         self.hidden_layer_size = self.current_layer
         self.hidden_neuron_per_layer = self.current_neuron_per_layer
+        print(f"[NeuralNetwork] Current hyper parameters: {self.current_layer}, {self.current_neuron_per_layer}")
         print("[NeuralNetwork] HyperParams checked and updated if necessary.")
         return ongoing_validation
 
