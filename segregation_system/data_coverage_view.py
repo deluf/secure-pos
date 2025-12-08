@@ -73,7 +73,7 @@ class DataCoverageView:
             features_well_distributed = random.random() < 0.9
             print(
                 f"[DataCoverageView] Simulated user decision: "
-                f"features {"not " if not features_well_distributed else " "}distributed")
+                f"features {'not ' if not features_well_distributed else ' '}distributed")
         else:
             result = input("[DataCoverageView] Are features well distributed? (Y/n): \n > ")
             features_well_distributed = result.lower() == "y"

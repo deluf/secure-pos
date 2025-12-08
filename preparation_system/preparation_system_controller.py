@@ -45,7 +45,7 @@ class PreparationSystemController:
         prep_cfg = self.shared_config["addresses"]["preparationSystem"]
         print(
             f"[PreparationSystem] Listening on {prep_cfg['ip']}:{prep_cfg['port']}. "
-            f"Development phase: {self.shared_config["systemPhase"]["developmentPhase"]}"
+            f"Development phase: {self.shared_config['systemPhase']['developmentPhase']}"
         )
 
         while True:

@@ -68,7 +68,7 @@ class DataBalancingView:
         if service_flag:
             data_balanced = random.random() < 0.9
             print(f"[DataBalancingView] Simulated user decision: data "
-                  f"{"not " if not data_balanced else " "}balanced")
+                  f"{'not ' if not data_balanced else ' '}balanced")
         else:
             result = input("[DataBalancingView] Is data balanced? (Y/n): \n > ")
             data_balanced = result.lower() == "y"
