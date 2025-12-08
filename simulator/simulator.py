@@ -148,7 +148,10 @@ if __name__ == "__main__":
     simulator = Simulator()
     initial_timestamp = int(time.time() * 1000)
     simulator.run(1000)
+    timestamps = []
     while True:
-        final_json = simulator.io.receive(Endpoint("/timestamp", "simulator/schemas/timestamp.schema.json"))
+        final_json = simulator.io.receive("/timestamp")
         final_timestamp = int(final_json["timestamp"])
         print(f"[Simulator] Received classifier timestamp: {final_timestamp - initial_timestamp}")
+        timestamps.append(final_timestamp - initial_timestamp)
+        print(timestamps)
