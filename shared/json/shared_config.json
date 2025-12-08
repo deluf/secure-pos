@@ -1,9 +1,9 @@
 {
     "serviceFlag": true,
     "systemPhase": {
-        "developmentPhase": true,
-        "evaluationPhaseWindow": 1000,
-        "productionPhaseWindow": 10
+        "developmentPhase": false,
+        "evaluationPhaseWindow": 1,
+        "productionPhaseWindow": 2000000000
     },
     "addresses": {
         "simulatorSystem": {
