@@ -15,9 +15,10 @@ class TestController:
         print(f"[Test] Final test execution on classifier {self.parent.valid_classifier_id}...")
         test_error, model_info = self.parent.neural_network.test(self.parent.valid_classifier_id, test_set)
         # Build Report
-        self.view.build_report(test_error, model_info, self.parent.config["generalizationTolerance"])
+        difference = self.view.build_report(test_error, model_info, self.parent.config["generalizationTolerance"])
         # Read User Input (Test passed)
-        test_passed, hidden_layer_size, hidden_neuron_per_layer = self.view.read_user_input(self.parent.service_flag)
+        test_passed, hidden_layer_size, hidden_neuron_per_layer = self.view.read_user_input(
+            self.parent.service_flag, difference, self.parent.config["generalizationTolerance"])
 
         if test_passed:
             # Create and Send Classifier

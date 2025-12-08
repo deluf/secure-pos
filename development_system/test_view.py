@@ -3,10 +3,8 @@ from random import random, randint
 
 class TestView:
     @staticmethod
-    def build_report(test_error, model_info, generalization_tolerance):
+    def build_report(test_error, model_info, generalization_tolerance) -> float:
         val_error = model_info["validation_error"]
-        test_error = test_error
-        val_error = val_error
         difference = (val_error - test_error) / val_error if val_error > test_error \
             else (test_error - val_error) / test_error
         print("\n--- TEST REPORT ---")
@@ -17,16 +15,17 @@ class TestView:
         print("--------------------")
         print(f"Generalization Tolerance: {generalization_tolerance}")
         print("--------------------")
+        return difference
 
     @staticmethod
-    def read_user_input(flag):
+    def read_user_input(flag, difference, generalization_tolerance):
         # Data Scientist: Test passed
         hidden_layer_size = None
         hidden_neuron_per_layer = None
         if not flag:
             res = input(">> Data Scientist: Test passed and send classifier? (y/n): ")
         else:
-            res = "y" if random() >= 0.01 else "n"
+            res = "n" if difference > generalization_tolerance else "y" if random() >= 0.01 else "n"
         if res.lower() == "n":
             hidden_layer_size = {
                 "min": 1,
