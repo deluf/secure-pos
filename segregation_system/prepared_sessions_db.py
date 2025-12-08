@@ -82,7 +82,7 @@ class PreparedSessionsDB:
 
         with self.conn:
             self.conn.execute(query, values)
-        print(f"[SessionsDB] Stored {prepared_session} session in the database")
+        #print(f"[SessionsDB] Stored {prepared_session} session in the database")
 
     def get_all(self) -> list[PreparedSession]:
         """
