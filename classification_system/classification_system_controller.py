@@ -62,7 +62,7 @@ class ClassificationSystemController:
             if self.is_development:
                 filename = self.io.receive(self.INPUT_CLASSIFIER_ENDPOINT)[0]
                 model = self.flow.deploy(filename)
-                print()
+                print("[TO CLIENT_SIDE SYSTEM]")
                 print(f"Model loaded from: {filename}")
                 print(f"Model type: {type(model).__name__}")
                 print(f"Hidden layer sizes: {model.hidden_layer_sizes}")
