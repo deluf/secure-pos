@@ -23,7 +23,7 @@ class TrainingController:
         if not self.parent.service_flag:
             iterations = input(">> Insert number of iterations (eg. 100): ")
         else:
-            iterations = 50 + randint(0, 250)
+            iterations = 50 + randint(-25, 25)
         self.parent.neural_network.set_number_iterations(iterations)
         # Calibrate
         loss_curve = self.parent.neural_network.calibrate(test_set)

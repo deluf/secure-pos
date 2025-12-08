@@ -87,8 +87,6 @@ class NeuralNetwork:
             if train_err is None or train_err == 0:
                 print(f"[NeuralNetwork] Training error: {train_err} critical error")
                 return False
-            train_err = train_err
-            val_err = val_err
             difference = (val_err - train_err) / val_err if val_err > train_err \
                 else (train_err - val_err) / train_err
             self.models_info[c_id]["difference"] = difference

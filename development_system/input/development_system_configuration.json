@@ -2,13 +2,13 @@
   "overfittingTolerance": 0.99,
   "generalizationTolerance": 0.99,
   "hiddenLayerSizeRange": {
-    "min": 2,
-    "max": 2,
+    "min": 1,
+    "max": 3,
     "step": 1
   },
   "hiddenNeuronPerLayerRange": {
-    "min": 100,
-    "max": 105,
-    "step": 1
+    "min": 8,
+    "max": 32,
+    "step": 8
   }
 }

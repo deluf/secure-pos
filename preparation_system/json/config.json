@@ -1,7 +1,8 @@
 {
-    "maxTransactionsAmount": 1000,
+    "maxTransactionsAmount": 10000,
     "extractedFeatures": [
         "mad_timestamps",
-        "mad_amounts"
+        "mad_amounts",
+        "median_longitude"
     ]
 }

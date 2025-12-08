@@ -1,5 +1,5 @@
 {
-    "maxErrors": 2,
-    "maxConsecutiveErrors": 2,
-    "minNumberLabels": 3
+    "maxErrors": 15,
+    "maxConsecutiveErrors": 5,
+    "minNumberLabels": 100
 }
