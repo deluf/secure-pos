@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 class NeuralNetwork:
     def __init__(self, hidden_layer_size_range, hidden_neuron_per_layer_range):
-        self.number_iterations = 100  # default value
+        self.number_iterations = 0  # default value
         self.hidden_layer_size_range = hidden_layer_size_range  # default value
         self.hidden_neuron_per_layer_range = hidden_neuron_per_layer_range  # default value
         self.hidden_layer_size = 5  # default value
@@ -46,6 +46,8 @@ class NeuralNetwork:
             if self.current_layer + self.hidden_layer_size_range['step'] <= self.hidden_layer_size_range['max']:
                 self.current_layer += self.hidden_layer_size_range['step']
                 ongoing_validation = True
+        self.hidden_layer_size = self.current_layer
+        self.hidden_neuron_per_layer = self.current_neuron_per_layer
         print("[NeuralNetwork] HyperParams checked and updated if necessary.")
         return ongoing_validation
 

@@ -30,7 +30,6 @@ class DevelopmentSystemController:
         )
         self.neural_network = NeuralNetwork(self.config["hiddenLayerSizeRange"],
                                             self.config["hiddenNeuronPerLayerRange"])
-        self.neural_network.number_iterations = 0
         self.valid_classifier_exists = False
         self.iterations_fine = False
         self.valid_classifier_id = None
@@ -52,8 +51,8 @@ class DevelopmentSystemController:
             # Loop: while no valid classifier
             while not self.valid_classifier_exists:
                 self.iterations_fine = False
-                self.neural_network.number_iterations = 0
-
+                self.neural_network.__init__(self.config["hiddenLayerSizeRange"],
+                                             self.config["hiddenNeuronPerLayerRange"])
                 # 1. Training Phase
                 print("\n[System] --- TRAINING PHASE START ---")
                 # Loop: while number of iterations not fine
@@ -72,17 +71,13 @@ class DevelopmentSystemController:
             print("\n[System] --- TEST PHASE END ---")
             # Reset for possible re-executions
             self.valid_classifier_exists = False
-            self.iterations_fine = False
             self.valid_classifier_id = None
             self.validation_ctrl.ongoing_validation = False
-            if not self.service_flag and test_passed:
-                break
             if not test_passed:
                 self.config = load_and_validate_json_file(self.CONFIG_PATH,
                                                           self.CONFIG_SCHEMA_PATH)
-            self.neural_network.__init__(self.config["hiddenLayerSizeRange"],
-                                         self.config["hiddenNeuronPerLayerRange"])
-            self.neural_network.number_iterations = 0
+            elif not self.service_flag:
+                break
 
 if __name__ == "__main__":
     controller = DevelopmentSystemController()
