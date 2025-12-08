@@ -11,8 +11,7 @@ class TrainingController:
         self.view = CalibrationView()
 
     def set_average_params(self):
-        self.parent.neural_network.set_avg_hyper_params(self.parent.config["hiddenLayerSizeRange"],
-                                                        self.parent.config["hiddenNeuronPerLayerRange"])
+        self.parent.neural_network.set_avg_hyper_params()
 
     def run(self, test_set):
         iterations = self.parent.neural_network.number_iterations

@@ -5,7 +5,11 @@ from development_system.validation_controller import ValidationController
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from shared.address import Address
+import warnings
+from sklearn.exceptions import ConvergenceWarning
 
+# Filter out the specific ConvergenceWarning
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 class DevelopmentSystemController:
     CONFIG_PATH = "development_system/input/development_system_configuration.json"
