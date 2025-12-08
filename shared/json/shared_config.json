@@ -7,31 +7,31 @@
     },
     "addresses": {
         "simulatorSystem": {
-          "ip": "195.32.11.207",
+            "ip": "127.0.0.1",
             "port": 8000
         },
         "ingestionSystem": {
-            "ip": "2.38.49.97",
+            "ip": "127.0.0.1",
             "port": 8001
         },
         "preparationSystem": {
-            "ip": "195.32.11.207",
+            "ip": "127.0.0.1",
             "port": 8002
         },
         "segregationSystem": {
-            "ip": "2.38.49.97",
+            "ip": "127.0.0.1",
             "port": 8003
         },
         "developmentSystem": {
-            "ip": "195.32.11.207",
+            "ip": "127.0.0.1",
             "port": 8004
         },
         "classificationSystem": {
-            "ip": "2.38.49.97",
+            "ip": "127.0.0.1",
             "port": 8005
         },
         "evaluationSystem": {
-            "ip": "195.32.11.207",
+            "ip": "127.0.0.1",
             "port": 8006
         }
     }
