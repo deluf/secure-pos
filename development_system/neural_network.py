@@ -16,7 +16,6 @@ class NeuralNetwork:
         self.models_info = []
         self.x_train, self.x_val, self.x_test = None, None, None
         self.y_train, self.y_val, self.y_test = None, None, None
-        #self.features, self.labels = None, None
 
     @staticmethod
     def load_data_from_csv(csv):
@@ -82,11 +81,18 @@ class NeuralNetwork:
         for c_id, model in enumerate(self.models):
             self.models_info[c_id]["validation_error"] = 1 - model.score(self.x_val, self.y_val)
             val_err, train_err = self.models_info[c_id]["validation_error"], self.models_info[c_id]["training_error"]
-            train_err = train_err + 1e-6
-            val_err = val_err + 1e-6
+            if val_err is None or val_err == 0:
+                print(f"[NeuralNetwork] Validation error: {val_err} critical error")
+                return False
+            if train_err is None or train_err == 0:
+                print(f"[NeuralNetwork] Training error: {train_err} critical error")
+                return False
+            train_err = train_err
+            val_err = val_err
             difference = (val_err - train_err) / val_err if val_err > train_err \
                 else (train_err - val_err) / train_err
             self.models_info[c_id]["difference"] = difference
+        return True
 
     def test(self, classifier_id, path):
         self.x_test, self.y_test = self.load_data_from_csv(path)

@@ -71,18 +71,18 @@ class DevelopmentSystemController:
             test_passed = self.test_ctrl.run(test_set)
             print("\n[System] --- TEST PHASE END ---")
             # Reset for possible re-executions
-            self.neural_network.number_iterations = 0
             self.valid_classifier_exists = False
             self.iterations_fine = False
             self.valid_classifier_id = None
             self.validation_ctrl.ongoing_validation = False
+            if not self.service_flag and test_passed:
+                break
             if not test_passed:
                 self.config = load_and_validate_json_file(self.CONFIG_PATH,
                                                           self.CONFIG_SCHEMA_PATH)
-                self.neural_network = NeuralNetwork(self.config["hiddenLayerSizeRange"],
-                                                    self.config["hiddenNeuronPerLayerRange"])
-            elif not self.service_flag:
-                break
+            self.neural_network.__init__(self.config["hiddenLayerSizeRange"],
+                                         self.config["hiddenNeuronPerLayerRange"])
+            self.neural_network.number_iterations = 0
 
 if __name__ == "__main__":
     controller = DevelopmentSystemController()

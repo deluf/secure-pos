@@ -19,7 +19,10 @@ class ValidationController:
             self.ongoing_validation = self.parent.neural_network.set_hyper_params()
 
         # Validation score
-        self.parent.neural_network.validate(validation_set)
+        res = self.parent.neural_network.validate(validation_set)
+        if not res:
+            print("[Validation] Validation failed.")
+            return
         # Build Report
         top_five = self.view.build_report(self.parent.neural_network.models_info)
 
