@@ -5,7 +5,11 @@ from development_system.validation_controller import ValidationController
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from shared.address import Address
+import warnings
+from sklearn.exceptions import ConvergenceWarning
 
+# Filter out the specific ConvergenceWarning
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 class DevelopmentSystemController:
     CONFIG_PATH = "development_system/input/development_system_configuration.json"
@@ -45,6 +49,9 @@ class DevelopmentSystemController:
             train_set = next((f for f in files if "train_set" in f), None)
             validation_set = next((f for f in files if "validation_set" in f), None)
             test_set = next((f for f in files if "test_set" in f), None)
+            if train_set is None or validation_set is None or test_set is None:
+                print("[System] A set is missing, calibration sets skipped")
+                continue
             print("[System] Calibration Sets received.")
 
             print("\n[System] --- DEVELOPMENT FLOW START ---")

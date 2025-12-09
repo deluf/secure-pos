@@ -87,6 +87,12 @@ class ClassificationSystemController:
                     'label': out_label.value
                 }
                 self.io.send_json(self.evaluation_system_address, self.EVALUATION_ENDPOINT, data)
+            else:
+                self.io.send_json(
+                    self.simulator_system_address,
+                    self.TIMESTAMP_ENDPOINT,
+                    {'timestamp': int(time.time() * 1000)}
+                )
 
             print(f"[TO CLIENT_SIDE SYSTEM] label: {out_label.value}")
 

@@ -59,14 +59,12 @@ class PreparationSystemController:
                 print(f"[PreparationSystem] Invalid RawSession received: {e}")
                 continue
 
-            print(f"[PreparationSystem] Received RawSession {session.uuid}")
-
             # First handle missing samples, then clip absolute outliers
             session = self.corrector.correct_missing_samples(session)
             session = self.corrector.correct_absolute_outiers(session)
 
             features = self.extractor.extract_features(session)
-            print(f"[PreparationSystem] Extracted features for {session.uuid}: {features}")
+            #print(f"[PreparationSystem] Extracted features for {session.uuid}: {features}")
 
             if self.shared_config["systemPhase"]["developmentPhase"]:
                 target = self.segregation_address
@@ -75,7 +73,6 @@ class PreparationSystemController:
                 target = self.classification_address
                 endpoint = "/prepared-session"
 
-            print(f"[PreparationSystem] Sending prepared data to {target} ({endpoint})...")
             try:
                 SystemsIO.send_json(target, endpoint, features)
             except requests_exceptions.RequestException as exc:

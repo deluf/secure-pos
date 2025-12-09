@@ -10,8 +10,8 @@ class NeuralNetwork:
         self.hidden_neuron_per_layer_range = hidden_neuron_per_layer_range  # default value
         self.hidden_layer_size = 5  # default value
         self.hidden_neuron_per_layer = 100  # default value
-        self.current_layer = hidden_layer_size_range["min"]
-        self.current_neuron_per_layer = hidden_neuron_per_layer_range["min"]
+        self.current_layer = None
+        self.current_neuron_per_layer = None
         self.models = []
         self.models_info = []
         self.x_train, self.x_val, self.x_test = None, None, None
@@ -26,9 +26,9 @@ class NeuralNetwork:
         print(f"[NeuralNetwork] Data loaded correctly and labeled encoded.")
         return df.drop(columns=["label", "uuid"]), df["label"]
 
-    def set_avg_hyper_params(self, hidden_layer_size_range, hidden_neuron_per_layer_range):
-        self.hidden_layer_size = (hidden_layer_size_range['min'] + hidden_layer_size_range['max']) // 2
-        self.hidden_neuron_per_layer = (hidden_neuron_per_layer_range['min'] + hidden_neuron_per_layer_range['max']) // 2
+    def set_avg_hyper_params(self):
+        self.hidden_layer_size = (self.hidden_layer_size_range['min'] + self.hidden_layer_size_range['max']) // 2
+        self.hidden_neuron_per_layer = (self.hidden_neuron_per_layer_range['min'] + self.hidden_neuron_per_layer_range['max']) // 2
         print("[NeuralNetwork] Average hyper parameters set.")
 
     def set_number_iterations(self, iterations):
@@ -36,21 +36,42 @@ class NeuralNetwork:
         print("[NeuralNetwork] Number of iterations set.")
 
     def set_hyper_params(self):
-        ongoing_validation = False
-        new_neuron_per_layer = self.current_neuron_per_layer + self.hidden_neuron_per_layer_range['step']
-        if new_neuron_per_layer <= self.hidden_neuron_per_layer_range['max']:
-            self.current_neuron_per_layer = new_neuron_per_layer
-            ongoing_validation = True
-        else:
-            self.current_neuron_per_layer = self.hidden_neuron_per_layer_range['min']
-            if self.current_layer + self.hidden_layer_size_range['step'] <= self.hidden_layer_size_range['max']:
-                self.current_layer += self.hidden_layer_size_range['step']
-                ongoing_validation = True
+        min_n = self.hidden_neuron_per_layer_range['min']
+        max_n = self.hidden_neuron_per_layer_range['max']
+        step_n = self.hidden_neuron_per_layer_range['step']
+        min_l = self.hidden_layer_size_range['min']
+        max_l = self.hidden_layer_size_range['max']
+        step_l = self.hidden_layer_size_range['step']
+
+        # 1st case) First Iteration (Initialization)
+        if self.current_layer is None:
+            self.current_layer = min_l
+            self.current_neuron_per_layer = min_n
+            self._apply_params()
+            return True
+
+        # 2nd case) Increment Neurons (Inner Loop)
+        next_neuron = self.current_neuron_per_layer + step_n
+        if next_neuron <= max_n:
+            self.current_neuron_per_layer = next_neuron
+            self._apply_params()
+            return True
+
+        # 3rd case) Increment Layers (Outer Loop)
+        next_layer = self.current_layer + step_l
+        if next_layer <= max_l:
+            self.current_layer = next_layer
+            self.current_neuron_per_layer = min_n  # Reset inner loop
+            self._apply_params()
+            return True
+
+        # End of Grid Search
+        return False
+
+    def _apply_params(self):
         self.hidden_layer_size = self.current_layer
         self.hidden_neuron_per_layer = self.current_neuron_per_layer
-        print(f"[NeuralNetwork] Current hyper parameters: {self.current_layer}, {self.current_neuron_per_layer}")
-        print("[NeuralNetwork] HyperParams checked and updated if necessary.")
-        return ongoing_validation
+        print(f"[NeuralNetwork] New HyperParams: Layers={self.current_layer}, Neurons={self.current_neuron_per_layer}")
 
     def calibrate(self, path):
         print(f"[NeuralNetwork] Training ({self.number_iterations} iterations)...")

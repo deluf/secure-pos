@@ -11,8 +11,7 @@ class TrainingController:
         self.view = CalibrationView()
 
     def set_average_params(self):
-        self.parent.neural_network.set_avg_hyper_params(self.parent.config["hiddenLayerSizeRange"],
-                                                        self.parent.config["hiddenNeuronPerLayerRange"])
+        self.parent.neural_network.set_avg_hyper_params()
 
     def run(self, test_set):
         iterations = self.parent.neural_network.number_iterations
@@ -23,7 +22,7 @@ class TrainingController:
         if not self.parent.service_flag:
             iterations = input(">> Insert number of iterations (eg. 100): ")
         else:
-            iterations = 50 + randint(-25, 25)
+            iterations = 100 + randint(-50, 50)
         self.parent.neural_network.set_number_iterations(iterations)
         # Calibrate
         loss_curve = self.parent.neural_network.calibrate(test_set)

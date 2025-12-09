@@ -60,7 +60,7 @@ class RawSessionDB:
             query = f"UPDATE partial_sessions SET {target_col} = ? WHERE uuid = ?"
             self.conn.execute(query, (val_to_store, uuid))
 
-        print(f"[RawSessionDB] Stored {record_type} for UUID {uuid}")
+        #print(f"[RawSessionDB] Stored {record_type} for UUID {uuid}")
 
     def get_session(self, uuid: str, minimum_records: int) -> Optional[RawSession]:
         """

@@ -95,7 +95,7 @@ class SystemsIO:
         if request.is_json:
             path = request.path
             data = request.get_json()
-            print(f"[SystemsIO] Received JSON payload: {data}")
+            #print(f"[SystemsIO] Received JSON payload: {data}")
             schema = self.schemas.get(path)
             try:
                 validate(instance=data, schema=schema)
@@ -127,7 +127,7 @@ class SystemsIO:
         """
         url = f"http://{target.ip}:{target.port}{endpoint}"
         requests.post(url, json=data, timeout=None).raise_for_status()
-        print(f"[SystemsIO] Sent to {url} JSON payload: {data}")
+        #print(f"[SystemsIO] Sent to {url} JSON payload: {data}")
 
     @staticmethod
     def send_files(target: Address, endpoint: str, file_paths: list[str]) -> None:

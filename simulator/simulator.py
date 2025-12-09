@@ -1,7 +1,10 @@
 import time
 import uuid
+import threading
 from typing import Final
 import random
+import csv
+import os
 
 import numpy as np
 
@@ -11,6 +14,12 @@ from shared.loader import load_and_validate_json_file
 from shared.systemsio import SystemsIO, Endpoint
 
 class Simulator:
+    """
+    Simulates the client side systems sending data to the ingestion system
+
+    :ivar N_SAMPLES: Number of samples generated per record type
+    :type N_SAMPLES: int
+    """
     N_SAMPLES: Final[int] = 10
 
     def __init__(self):
@@ -137,21 +146,72 @@ class Simulator:
         return label_record, transaction_record, location_record, ip_record
 
     def run(self, sessions: int = 1) -> None:
+        """
+        Sends simulated records to the ingestion system
+        """
         while sessions > 0:
             records = self._generate_records()
             for record in list(records):
                 self.io.send_json(self.ingestion_system_address, "/record", record)
-                #print(f"[Simulator] Sent {record} record ({sessions} sessions remaining)")
             sessions -= 1
+
+    def elasticity_test_production_phase(self):
+        """
+        Performs an elasticity test on the production phase.
+        Results are saved in a CSV file
+        """
+        csv_filename = "elasticity_test_production_phase.csv"
+        if not os.path.exists(csv_filename):
+            with open(csv_filename, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["n_sessions", "response_time_ms"])
+        for n in range(100, 800, 50):
+            start_ts = int(time.time() * 1000)
+            self.run(n)
+            for _ in range(n):
+                self.io.receive("/timestamp")
+            end_ts = int(time.time() * 1000)
+            diff_ms = end_ts - start_ts
+            with open(csv_filename, "a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([n, diff_ms])
+            print(f"[Iteration N={n}] Processed {n} sessions in {diff_ms}ms")
+            time.sleep(10)
+
+    def elasticity_test_development_phase(self):
+        """
+        Performs an elasticity test on the development phase.
+        Results are saved in a CSV file
+        """
+        def _generator_job():
+            print("[Simulator] Generator thread started")
+            while True:
+                self.run(100000000)
+        def _observer_job():
+            print("[Simulator] Timestamp observer started")
+            csv_filename = "elasticity_test_development_phase.csv"
+            start_ts = int(time.time() * 1000)
+            with open(csv_filename, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["n_classifiers", "response_time_ms"])
+                received_classifiers = 0
+                while True:
+                    final_json = self.io.receive("/timestamp")
+                    rec_ts = int(final_json["timestamp"])
+                    latency = rec_ts - start_ts
+                    received_classifiers += 1
+                    writer.writerow([received_classifiers, latency])
+                    f.flush()
+                    print(f"[Receiver] Logged ({received_classifiers}, {latency})")
+
+        threading.Thread(target=_observer_job(), daemon=True).start()
+        threading.Thread(target=_generator_job(), daemon=True).start()
+
+        # --- Keep Main Alive ---
+        while True:
+            time.sleep(1)
 
 if __name__ == "__main__":
     simulator = Simulator()
-    initial_timestamp = int(time.time() * 1000)
-    simulator.run(1000)
-    timestamps = []
-    while True:
-        final_json = simulator.io.receive("/timestamp")
-        final_timestamp = int(final_json["timestamp"])
-        print(f"[Simulator] Received classifier timestamp: {final_timestamp - initial_timestamp}")
-        timestamps.append(final_timestamp - initial_timestamp)
-        print(timestamps)
+    simulator.elasticity_test_production_phase()
+    #simulator.elasticity_test_development_phase()
