@@ -1,5 +1,5 @@
-from ingestion_system.raw_session import RawSession
 from requests import exceptions as requests_exceptions
+from ingestion_system.raw_session import RawSession
 from shared.systemsio import SystemsIO, Endpoint
 from shared.address import Address
 from shared.loader import load_and_validate_json_file
@@ -9,6 +9,7 @@ from preparation_system.feature_extractor import FeatureExtractor
 
 
 class PreparationSystemController:
+    """Controls the Preparation System, managing data correction and feature extraction."""
     CONFIG_PATH = "preparation_system/json/config.json"
     CONFIG_SCHEMA_PATH = "preparation_system/json/config_schema.json"
     SHARED_CONFIG_PATH = "shared/json/shared_config.json"
@@ -17,6 +18,8 @@ class PreparationSystemController:
     PROCESS_ENDPOINT = "/process"
 
     def __init__(self):
+        """Initializes the Preparation System Controller by loading configurations,
+        setting up IO endpoints, and preparing data corrector and feature extractor."""
         self.config = load_and_validate_json_file(self.CONFIG_PATH, self.CONFIG_SCHEMA_PATH)
         self.shared_config = load_and_validate_json_file(
             self.SHARED_CONFIG_PATH,
@@ -42,6 +45,8 @@ class PreparationSystemController:
         self.extractor = FeatureExtractor(self.config["extractedFeatures"])
 
     def run(self):
+        """Runs the main loop of the Preparation System Controller,
+        processing incoming RawSessions."""
         prep_cfg = self.shared_config["addresses"]["preparationSystem"]
         print(
             f"[PreparationSystem] Listening on {prep_cfg['ip']}:{prep_cfg['port']}. "
