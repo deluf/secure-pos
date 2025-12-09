@@ -33,7 +33,11 @@ class FlowClassification:
 
         df = pd.DataFrame([prepared_session])
 
-        x_pred = df[expected_features]
+        try:
+            x_pred = df[expected_features]
+        except KeyError:
+            print(f"No features were provided for {expected_features}")
+            return AttackRiskLevel.NORMAL
 
         prediction = model.predict(x_pred)[0]
 
