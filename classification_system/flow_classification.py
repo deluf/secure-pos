@@ -1,5 +1,8 @@
+"""
+This file contains the implementation of the FlowClassification class
+"""
+
 import os
-from typing import List
 
 import pandas as pd
 from sklearn.neural_network import MLPClassifier
@@ -9,9 +12,20 @@ from shared.attack_risk_level import AttackRiskLevel
 
 
 class FlowClassification:
+    """
+    Flow Classification class.
+    This class implements the deploy and classify methods,
+    which are called from the Classification System Controller,
+    depending on the operating phase.
+    """
 
     @staticmethod
     def deploy(filename: str) -> MLPClassifier:
+        """
+        Deserialize the received binary file into a MLPClassifier python class
+        :param filename:
+        :return:
+        """
         model = joblib.load(filename)
         if not isinstance(model, MLPClassifier):
             raise TypeError("Loaded object is not an MLPClassifier")
