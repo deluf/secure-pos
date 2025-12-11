@@ -1,3 +1,9 @@
+"""
+Main File of the Development System package
+"""
+
+import warnings
+from sklearn.exceptions import ConvergenceWarning
 from development_system.neural_network import NeuralNetwork
 from development_system.test_controller import TestController
 from development_system.training_controller import TrainingController
@@ -5,13 +11,16 @@ from development_system.validation_controller import ValidationController
 from shared.systemsio import SystemsIO, Endpoint
 from shared.loader import load_and_validate_json_file
 from shared.address import Address
-import warnings
-from sklearn.exceptions import ConvergenceWarning
 
 # Filter out the specific ConvergenceWarning
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 class DevelopmentSystemController:
+    """
+    Main controller of the development system.
+    Handles the sequence of all operations and the training, validation and test
+    controllers.
+    """
     CONFIG_PATH = "development_system/input/development_system_configuration.json"
     CONFIG_SCHEMA_PATH = "development_system/schema/configuration.schema.json"
     SHARED_CONFIG_PATH = "shared/json/shared_config.json"
@@ -43,6 +52,10 @@ class DevelopmentSystemController:
         self.test_ctrl = TestController(self)
 
     def run(self):
+        """
+        Main function of the development system controller.
+        Called by the user to run the development system.
+        """
         while True:
             # Receive Calibration Set
             files = self.io.receive(self.PROCESS_ENDPOINT)

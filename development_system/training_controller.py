@@ -1,8 +1,15 @@
+"""
+This file contains the implementation of the TrainingController class
+"""
+
 from random import randint
 from development_system.calibration_view import CalibrationView
 
 
 class TrainingController:
+    """
+    Handles all training operations.
+    """
     ITERATION_PATH = "development_system/input/number_iterations.json"
     ITERATION_DECISION_PATH = "development_system/input/iterations_decision.json"
 
@@ -11,9 +18,15 @@ class TrainingController:
         self.view = CalibrationView()
 
     def set_average_params(self):
+        """
+        Sets the average parameters of the training process.
+        """
         self.parent.neural_network.set_avg_hyper_params()
 
     def run(self, test_set):
+        """
+        Runs the training phase.
+        """
         iterations = self.parent.neural_network.number_iterations
         # Set average hyper params
         if iterations is None or iterations == 0:

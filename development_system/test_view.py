@@ -1,9 +1,19 @@
+"""
+This file contains the implementation of the TestView class
+"""
+
 from random import random, randint
 
 
 class TestView:
+    """
+    Handles the test report.
+    """
     @staticmethod
     def build_report(test_error, model_info, generalization_tolerance) -> float:
+        """
+        Builds the report of the test.
+        """
         val_error = model_info["validation_error"]
         difference = (val_error - test_error) / val_error if val_error > test_error \
             else (test_error - val_error) / test_error
@@ -19,6 +29,9 @@ class TestView:
 
     @staticmethod
     def read_user_input(flag, difference, generalization_tolerance):
+        """
+        Reads the user input for the test result.
+        """
         # Data Scientist: Test passed
         hidden_layer_size = None
         hidden_neuron_per_layer = None
