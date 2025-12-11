@@ -1,12 +1,18 @@
-from dataclasses import dataclass
-from shared.attack_risk_level import AttackRiskLevel
+"""
+This file contains the Raw Session DTO class.
+"""
+
 from typing import List, Optional
 
+from dataclasses import dataclass
+from shared.attack_risk_level import AttackRiskLevel
 
+
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class RawSession:
     """
-    raw session DTO.
+    Raw Session DTO.
     """
     uuid: str
     timestamp: List[Optional[float]]

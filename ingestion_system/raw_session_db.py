@@ -1,11 +1,21 @@
+"""
+This file contains the implementation of the Raw Session DB class.
+"""
+
 import sqlite3
 import json
-from numbers import Number
 from typing import Optional
+
 from ingestion_system.raw_session import RawSession
 
 
 class RawSessionDB:
+    """
+    This is a helper class used by the Ingestion System to communicate with a temporary buffer.
+    The temporary buffer is implemented as a SQLite database.
+    It is used to temporarily store records until it is possible to create a new raw session.
+    """
+
     TYPE_TO_COLUMN = {
         'transaction_data': 'transaction_data',
         'network_data': 'network_data',
@@ -60,13 +70,13 @@ class RawSessionDB:
             query = f"UPDATE partial_sessions SET {target_col} = ? WHERE uuid = ?"
             self.conn.execute(query, (val_to_store, uuid))
 
-        #print(f"[RawSessionDB] Stored {record_type} for UUID {uuid}")
-
     def get_session(self, uuid: str, minimum_records: int) -> Optional[RawSession]:
         """
         Returns the session ONLY if all data parts are present.
         """
-        query = "SELECT transaction_data, network_data, location_data, label FROM partial_sessions WHERE uuid = ?"
+        query = """
+                SELECT transaction_data,network_data, location_data, label FROM partial_sessions WHERE uuid = ?
+                """
         cursor = self.conn.cursor()
         cursor.execute(query, (uuid,))
         row = cursor.fetchone()
@@ -76,7 +86,8 @@ class RawSessionDB:
 
         trans_blob, net_blob, loc_blob, label_blob = row
 
-        if sum(x is not None for x in [trans_blob, net_blob, loc_blob, label_blob]) < minimum_records:
+        records = [trans_blob, net_blob, loc_blob, label_blob]
+        if sum(x is not None for x in records) < minimum_records:
             return None
 
         t_data = json.loads(trans_blob)
@@ -97,5 +108,8 @@ class RawSessionDB:
         )
 
     def remove(self, uuid: str):
+        """
+        Removes a session from the database.
+        """
         with self.conn:
             self.conn.execute("DELETE FROM partial_sessions WHERE uuid = ?", (uuid,))

@@ -1,7 +1,17 @@
+"""
+This file contains the implementation of the Flow Analysis class
+"""
+
 from ingestion_system.raw_session import RawSession
 
 
+# pylint: disable=too-few-public-methods
 class FlowAnalysis:
+    """
+    This class implements the mark missing samples method used by the
+    ingestion system controller.
+    """
+
     TARGET_SEQUENCE_LENGTH = 10
 
     @staticmethod
