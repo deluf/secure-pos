@@ -24,7 +24,8 @@ class TestController:
             # Create and Send Classifier
             model = self.parent.neural_network.models[self.parent.valid_classifier_id]
             os.makedirs("development_system/classifier", exist_ok=True)
-            dump(model, "development_system/classifier/classifier.joblib")
+            customer = test_set.split(".")[1]
+            dump(model, f"development_system/classifier/classifier.{customer}.joblib")
             address = self.parent.classification_address
             SystemsIO.send_files(address, "/classifier", ["development_system/classifier/classifier.joblib"])
             print("[Test] Classifier sent")
