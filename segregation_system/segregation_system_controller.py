@@ -69,7 +69,8 @@ class SegregationSystemController:
         )
 
         self.io = SystemsIO(
-            [Endpoint("/prepared-session", "segregation_system/schemas/prepared_session.schema.json")],
+            [Endpoint("/prepared-session",
+                      "segregation_system/schemas/prepared_session.schema.json")],
             self.configuration["addresses"]["segregationSystem"]["port"],
         )
         self.sessions_db = PreparedSessionsDB()

@@ -80,7 +80,8 @@ class DataBalancingView:
         if service_flag:
             for level in AttackRiskLevel:
                 requested_sessions[level] = random.randint(0, 50)
-            print(f"[DataBalancingView] Simulated user decision: requested sessions {requested_sessions}")
+            print(f"[DataBalancingView] Simulated user decision: "
+                  f"requested sessions {requested_sessions}")
         else:
             for level in AttackRiskLevel:
                 result = input(f"[Controller] How many additional sessions for {level}? \n > ")
