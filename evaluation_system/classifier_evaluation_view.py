@@ -1,3 +1,7 @@
+"""
+This file contains the implementation of the ClassifierEvaluationView class
+"""
+
 import json
 import os
 
@@ -61,6 +65,7 @@ class ClassifierEvaluationView:
         try:
             with open(filename, 'w') as f:
                 json.dump(report_data, f, indent=4)
-            print(f"\n[Evaluation System] JSON Report generated successfully: {os.path.abspath(filename)}")
+            print(f"\n[Evaluation System] JSON Report generated successfully: "
+                  f"{os.path.abspath(filename)}")
         except Exception as e:
             print(f"\n[Evaluation System Error] Could not save JSON report: {e}")

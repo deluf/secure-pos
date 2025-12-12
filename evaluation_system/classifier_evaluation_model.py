@@ -1,3 +1,7 @@
+"""
+This file contains the implementation of the ClassifierEvaluationModel class
+"""
+
 from dataclasses import dataclass
 from typing import List, Dict
 from shared.attack_risk_level import AttackRiskLevel
@@ -29,9 +33,9 @@ class ClassifierEvaluationModel:
         self.max_consecutive_errors = 0
 
         # Calculate the metrics
-        self.calculate_metrics()
+        self._calculate_metrics()
 
-    def calculate_metrics(self):
+    def _calculate_metrics(self):
         """
         Calculates and updates the total errors and the maximum consecutive errors.
         """
